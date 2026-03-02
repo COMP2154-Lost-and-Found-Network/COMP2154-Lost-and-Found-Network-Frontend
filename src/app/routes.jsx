@@ -14,7 +14,6 @@ import AdminDashboardPage from "../features/admin/pages/AdminDashboardPage";
 import AdminItemsPage from "../features/admin/pages/AdminItemsPage";
 import AdminClaimsPage from "../features/admin/pages/AdminClaimsPage";
 
-// Set router basename to Vite's BASE_URL so routes work when the app is served from a subfolder
 export const router = createBrowserRouter(
   [
     { path: "/login", element: <LoginPage /> },
