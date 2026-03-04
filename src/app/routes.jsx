@@ -16,8 +16,10 @@ import AdminClaimsPage from "../features/admin/pages/AdminClaimsPage";
 
 export const router = createBrowserRouter(
   [
+    //Public routes
     { path: "/login", element: <LoginPage /> },
     { path: "/register", element: <RegisterPage /> },
+
 
     {
       path: "/",
@@ -40,7 +42,7 @@ export const router = createBrowserRouter(
           ),
         },
 
-        // Admin-only routes
+        //Admin-only routes
         {
           path: "admin",
           element: (
@@ -65,10 +67,11 @@ export const router = createBrowserRouter(
             </RequireAdmin>
           ),
         },
-
-        { path: "*", element: <NotFound /> },
       ],
     },
+
+    //Global catch-all
+    { path: "*", element: <NotFound /> },
   ],
   { basename: import.meta.env.BASE_URL }
 );

@@ -21,7 +21,6 @@ function makeToken(user) {
 
 //Simulated login request
 export async function mockLogin({ email, password }) {
-  if (!USE_MOCK) throw new Error("Real backend not implemented yet."); //This will be removed once backend starts existing
 
   await delay(400);
 

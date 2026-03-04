@@ -1,3 +1,9 @@
+import PageContainer from "../../../components/ui/PageContainer";
+
 export default function BrowsePage() { //placeholder for now
-  return <h1>Placeholder</h1>;
+  return (
+    <PageContainer>
+      <h1>Browse Items</h1>
+    </PageContainer>
+  );
 }

@@ -1,14 +1,24 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "../components/ui/Navbar";
+import Footer from "../components/ui/Footer";
 
-export default function AppLayout() { //Defines layout
+export default function AppLayout() {
   return (
-    <>
-      <Navbar /> {/*Navbar gets loaded here from the components*/}
-      <main style={{ padding: 20 }}> {/*Main gets loaded here (depends on the page)*/}
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        background: "#F3F4F6",
+      }}
+    >
+      <Navbar />
+
+      <main style={{ flex: 1 }}>
         <Outlet />
       </main>
-      {/*Footer gets loaded here from the components (once created)*/} 
-    </>
+
+      <Footer />
+    </div>
   );
 }

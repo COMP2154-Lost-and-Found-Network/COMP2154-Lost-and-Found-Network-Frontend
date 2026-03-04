@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { validateRegister } from "../utils/registerValidation.js";
+import styles from "../styles/Auth.module.css";
 
 export default function RegisterForm({ onSubmit, isLoading = false, error = "" }) {
   const [form, setForm] = useState({
@@ -24,54 +25,68 @@ export default function RegisterForm({ onSubmit, isLoading = false, error = "" }
 
     if (Object.keys(validationErrors).length > 0) return;
 
-    if (typeof onSubmit === "function") {
-      onSubmit(form);
-    }
+    if (typeof onSubmit === "function") onSubmit(form);
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <label htmlFor="first_name">First Name</label>
-      <input
-        id="first_name"
-        name="first_name"
-        value={form.first_name}
-        onChange={handleChange}
-      />
-      {errors.first_name && <p style={{ color: "red" }}>{errors.first_name}</p>}
+    <form onSubmit={handleSubmit} noValidate className={styles.form}>
+      <label className={styles.field} htmlFor="first_name">
+        First Name
+        <input
+          className={styles.input}
+          id="first_name"
+          name="first_name"
+          value={form.first_name}
+          onChange={handleChange}
+          autoComplete="given-name"
+        />
+      </label>
+      {errors.first_name && <div className={styles.error}>{errors.first_name}</div>}
 
-      <label htmlFor="last_name">Last Name</label>
-      <input
-        id="last_name"
-        name="last_name"
-        value={form.last_name}
-        onChange={handleChange}
-      />
-      {errors.last_name && <p style={{ color: "red" }}>{errors.last_name}</p>}
+      <label className={styles.field} htmlFor="last_name">
+        Last Name
+        <input
+          className={styles.input}
+          id="last_name"
+          name="last_name"
+          value={form.last_name}
+          onChange={handleChange}
+          autoComplete="family-name"
+        />
+      </label>
+      {errors.last_name && <div className={styles.error}>{errors.last_name}</div>}
 
-      <label htmlFor="email">Email</label>
-      <input
-        id="email"
-        name="email"
-        type="email"
-        value={form.email}
-        onChange={handleChange}
-      />
-      {errors.email && <p style={{ color: "red" }}>{errors.email}</p>}
+      <label className={styles.field} htmlFor="email">
+        Email
+        <input
+          className={styles.input}
+          id="email"
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={handleChange}
+          autoComplete="email"
+        />
+      </label>
+      {errors.email && <div className={styles.error}>{errors.email}</div>}
 
-      <label htmlFor="password">Password</label>
-      <input
-        id="password"
-        name="password"
-        type="password"
-        value={form.password}
-        onChange={handleChange}
-      />
-      {errors.password && <p style={{ color: "red" }}>{errors.password}</p>}
+      <label className={styles.field} htmlFor="password">
+        Password
+        <input
+          className={styles.input}
+          id="password"
+          name="password"
+          type="password"
+          value={form.password}
+          onChange={handleChange}
+          autoComplete="new-password"
+        />
+      </label>
+      {errors.password && <div className={styles.error}>{errors.password}</div>}
 
-      {error ? <p style={{ color: "red" }}>{error}</p> : null}
+      {error ? <div className={styles.error}>{error}</div> : null}
 
-      <button type="submit" disabled={isLoading}>
+      <button className={styles.button} type="submit" disabled={isLoading}>
         {isLoading ? "Registering..." : "Register"}
       </button>
     </form>

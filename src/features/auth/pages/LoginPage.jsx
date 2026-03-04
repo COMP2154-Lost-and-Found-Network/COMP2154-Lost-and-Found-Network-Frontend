@@ -1,20 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../../context/useAuth";
 import LoginForm from "../components/LoginForm";
+import styles from "../styles/Auth.module.css";
 
-//Returns login page 
 export default function LoginPage() {
-  //Gets login function from auth context
   const { login } = useAuth();
-  //Redirects after successful login
   const navigate = useNavigate();
-  //Tracks if login request is currently in progress
   const [isLoading, setIsLoading] = useState(false);
-  //Stores any authentication error message
   const [error, setError] = useState("");
 
-  //Handles form submission from loginform
   async function handleLogin(data) {
     try {
       setIsLoading(true);
@@ -27,11 +22,24 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   }
-  // Calls loginform component
+
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Login</h1>
-      <LoginForm onSubmit={handleLogin} isLoading={isLoading} error={error} /> 
+    <div className={styles.page}>
+      <div className={styles.container}>
+        <h1 className={styles.title}>Login</h1>
+
+        <section className={styles.card}>
+
+          <LoginForm onSubmit={handleLogin} isLoading={isLoading} error={error} />
+
+          <div className={styles.authRow}>
+            <span className={styles.authRowText}>Don’t have an account? </span>
+            <Link className={styles.linkButton} to="/register">
+              Register
+            </Link>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
