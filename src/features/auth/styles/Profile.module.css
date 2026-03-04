@@ -1,0 +1,90 @@
+.page {
+  padding: 16px;
+}
+
+.card {
+  border: 1px solid #ccc;
+  padding: 12px;
+  border-radius: 8px;
+  background: white;
+}
+
+.cardTitle {
+  margin-top: 0;
+}
+
+.sectionTitle {
+  margin-top: 24px;
+}
+
+.list {
+  padding-left: 18px;
+}
+
+.section {
+  margin-top: 24px;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.rowTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.rowTitle {
+  font-weight: 800;
+}
+
+.meta {
+  opacity: 0.8;
+  font-size: 14px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.badgeLost {
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+
+.badgeFound {
+  background: #ecfeff;
+  border-color: #67e8f9;
+}
+
+.badgePending {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.badgeApproved {
+  background: #f0fdf4;
+  border-color: #86efac;
+}

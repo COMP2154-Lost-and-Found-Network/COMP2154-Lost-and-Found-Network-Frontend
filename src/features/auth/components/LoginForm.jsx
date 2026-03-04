@@ -1,44 +1,45 @@
 import { useState } from "react";
+import styles from "../styles/Auth.module.css";
 
-
-//Colects user info and sends it to parent
 export default function LoginForm({ onSubmit, isLoading, error }) {
-  //Local state for controlled inputs
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  //Handles the form submit events
   function submit(e) {
-    e.preventDefault(); //prevent reload
-    onSubmit({ email, password }); //submit
+    e.preventDefault();
+    onSubmit({ email, password });
   }
 
-  //Returns the login form
   return (
-    <form onSubmit={submit} style={{ display: "grid", gap: 10, maxWidth: 360 }}>
-      <label>
+    <form onSubmit={submit} className={styles.form}>
+      <label className={styles.field}>
         Email
-        <input value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input
+          className={styles.input}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+        />
       </label>
 
-      <label>
+      <label className={styles.field}>
         Password
         <input
+          className={styles.input}
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
         />
       </label>
-      {/*Renders an error message only if it exsits*/}
-      {error ? <div style={{ color: "crimson" }}>{error}</div> : null}
 
-      {/*Disables the button while login request is in progress*/}
-      <button type="submit" disabled={isLoading}>
+      {error ? <div className={styles.error}>{error}</div> : null}
+
+      <button className={styles.button} type="submit" disabled={isLoading}>
         {isLoading ? "Logging in..." : "Login"}
       </button>
 
-      {/*Will be deleted in the future, just reminds the developer what mock accounts are*/}
-      <div style={{ fontSize: 12, opacity: 0.8 }}>
+      <div className={styles.hint}>
         Mock users:
         <div>admin@example.com / admin123</div>
         <div>user@example.com / user123</div>

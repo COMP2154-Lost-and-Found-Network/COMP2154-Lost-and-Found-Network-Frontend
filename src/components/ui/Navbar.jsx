@@ -2,52 +2,114 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 
 export default function Navbar() {
-  const { isAuthed, user, logout } = useAuth();
+  const { user, isAuthed, logout } = useAuth();
   const navigate = useNavigate();
+
   const isAdmin = user?.role === "ADMIN";
+
   async function handleLogout() {
     await logout();
     navigate("/login", { replace: true });
   }
 
   return (
-    <nav
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        padding: "12px 16px",
-        borderBottom: "1px solid #ddd",
-      }}
-    >
-      <div style={{ display: "flex", gap: 12 }}>
-        <Link to="/">Browse</Link>
-        {isAuthed && <Link to="/profile">Profile</Link>}
+    <nav style={styles.nav}>
+      {/* Left side */}
+      <div style={styles.left}>
+        <strong style={styles.brand}>Lost & Found</strong>
+
+        <Link style={styles.link} to="/">
+          Browse
+        </Link>
+
+        {/* Logged-in user links */}
+        {isAuthed && (
+          <Link style={styles.link} to="/profile">
+            Profile
+          </Link>
+        )}
 
         {/* Admin-only links */}
         {isAuthed && isAdmin && (
           <>
-            <Link to="/admin">Admin</Link>
-            <Link to="/admin/items">Manage Items</Link>
-            <Link to="/admin/claims">Manage Claims</Link>
+            <Link style={styles.link} to="/admin">
+              Admin
+            </Link>
+            <Link style={styles.link} to="/admin/items">
+              Items
+            </Link>
+            <Link style={styles.link} to="/admin/claims">
+              Claims
+            </Link>
           </>
         )}
       </div>
 
-      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        {isAuthed ? (
+      {/* Right side */}
+      <div style={styles.right}>
+        {!isAuthed ? (
           <>
-            <span style={{ fontSize: 14 }}>
-              {user?.email} ({user?.role})
-            </span>
-            <button onClick={handleLogout}>Log out</button>
+            <Link style={styles.link} to="/login">
+              Login
+            </Link>
+            <Link style={styles.link} to="/register">
+              Register
+            </Link>
           </>
         ) : (
           <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            <span style={styles.userText}>
+              {user?.email} ({user?.role})
+            </span>
+            <button style={styles.logoutBtn} onClick={handleLogout}>
+              Log out
+            </button>
           </>
         )}
       </div>
     </nav>
   );
 }
+
+const styles = {
+  nav: {
+    background: "#2563EB",
+    color: "white",
+    padding: "14px 24px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  left: {
+    display: "flex",
+    gap: 18,
+    alignItems: "center",
+  },
+  right: {
+    display: "flex",
+    gap: 14,
+    alignItems: "center",
+  },
+  brand: {
+    fontSize: 16,
+    letterSpacing: 0.3,
+  },
+  link: {
+    color: "white",
+    textDecoration: "none",
+    fontWeight: 500,
+  },
+  userText: {
+    fontSize: 14,
+    opacity: 0.95,
+  },
+  logoutBtn: {
+    background: "white",
+    color: "#2563EB",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: 4,
+    cursor: "pointer",
+    fontWeight: 600,
+  },
+};
