@@ -9,7 +9,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   //Redirects after successful login
   const navigate = useNavigate();
-  //Tracks ifl ogin request is currently in progress
+  //Tracks if login request is currently in progress
   const [isLoading, setIsLoading] = useState(false);
   //Stores any authentication error message
   const [error, setError] = useState("");
