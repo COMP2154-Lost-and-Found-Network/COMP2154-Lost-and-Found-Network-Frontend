@@ -49,10 +49,57 @@ async function realLogin({ email, password }) {
   return data;
 }
 
+export async function mockRegister({ first_name, last_name, email, password }) {
+  await delay(400);
+
+  const existingUser = mockUsers.find((u) => u.email === email);
+  if (existingUser) {
+    throw new Error("Email already exists");
+  }
+
+  const newUser = {
+    id: mockUsers.length + 1,
+    first_name,
+    last_name,
+    email,
+    password,
+    role: "USER",
+  };
+
+  mockUsers.push(newUser);
+
+  return {
+    message: "Registration successful",
+    user: {
+      id: newUser.id,
+      first_name: newUser.first_name,
+      last_name: newUser.last_name,
+      email: newUser.email,
+      role: newUser.role,
+    },
+  };
+}
+
+async function realRegister({ first_name, last_name, email, password }) {
+  
+  const data = await http.post("/auth", {
+    first_name,
+    last_name,
+    email,
+    password,
+  });
+
+  return data;
+}
+
 export async function logout() {
-  clearAuth(); //Delete saved toekn
+  clearAuth(); //Delete saved token
 }
 
 export async function login(credentials) {
   return USE_MOCK ? mockLogin(credentials) : realLogin(credentials); //Checking if to use mockLogin or realLogin
+}
+
+export async function register(data) {
+  return USE_MOCK ? mockRegister(data) : realRegister(data); //Checking if to use mockRegister or realRegister
 }

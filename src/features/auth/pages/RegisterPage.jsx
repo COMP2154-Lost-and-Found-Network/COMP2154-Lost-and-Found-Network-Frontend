@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import RegisterForm from "../components/RegisterForm.jsx";
 import styles from "../styles/Auth.module.css";
+import { register } from "../api/authApi";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -12,10 +13,9 @@ export default function RegisterPage() {
   async function handleRegister(formData) {
     setError("");
     setIsLoading(true);
+
     try {
-      console.log("RegisterPage handleRegister:", formData);
-      //Backend doesn't exist
-      //After success, go to login:
+      await register(formData);
       navigate("/login", { replace: true });
     } catch (e) {
       setError(e?.message || "Registration failed.");
@@ -30,8 +30,11 @@ export default function RegisterPage() {
         <h1 className={styles.title}>Register</h1>
 
         <section className={styles.card}>
-
-          <RegisterForm onSubmit={handleRegister} isLoading={isLoading} error={error} />
+          <RegisterForm
+            onSubmit={handleRegister}
+            isLoading={isLoading}
+            error={error}
+          />
 
           <div className={styles.authRow}>
             <span className={styles.authRowText}>Already have an account?</span>
