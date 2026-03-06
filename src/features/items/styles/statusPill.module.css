@@ -1,0 +1,26 @@
+.pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.claimed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.expired {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.archived {
+  background: #f3f4f6;
+  color: #374151;
+}

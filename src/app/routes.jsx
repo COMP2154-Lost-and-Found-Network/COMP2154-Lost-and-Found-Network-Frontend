@@ -14,6 +14,11 @@ import AdminDashboardPage from "../features/admin/pages/AdminDashboardPage";
 import AdminItemsPage from "../features/admin/pages/AdminItemsPage";
 import AdminClaimsPage from "../features/admin/pages/AdminClaimsPage";
 
+// Items pages
+import ItemsDashboardPage from "../features/items/pages/ItemsDashboardPage";
+import ItemDetailsPage from "../features/items/pages/ItemDetailsPage";
+import EditItemPage from "../features/items/pages/EditItemPage";
+
 export const router = createBrowserRouter(
   [
     //Public routes
@@ -67,11 +72,34 @@ export const router = createBrowserRouter(
             </RequireAdmin>
           ),
         },
+        {
+          path: "items",
+          element: (
+          <RequireAuth>
+            <ItemsDashboardPage />
+            </RequireAuth>
+            ),
+        },
+        {
+          path: "items/:itemId",
+          element: (
+          <RequireAuth>
+            <ItemDetailsPage />
+          </RequireAuth>
+            ),
+        },
+        {
+          path: "items/:itemId/edit",
+          element: (
+          <RequireAuth>
+            <EditItemPage />
+          </RequireAuth>
+            ),
+        },
       ],
-    },
-
-    //Global catch-all
-    { path: "*", element: <NotFound /> },
-  ],
-  { basename: import.meta.env.BASE_URL }
-);
+          },
+          //Global catch-all
+          { path: "*", element: <NotFound /> },
+        ],
+        { basename: import.meta.env.BASE_URL }
+      );

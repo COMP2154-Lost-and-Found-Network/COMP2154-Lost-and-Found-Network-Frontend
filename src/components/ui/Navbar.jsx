@@ -27,6 +27,13 @@ export default function Navbar() {
           <Link style={styles.link} to="/profile">
             Profile
           </Link>
+          
+        )}
+        {isAuthed && (
+          <Link style={styles.link} to="/items">
+            Dashboard
+          </Link>
+          
         )}
 
         {/* Admin-only links */}

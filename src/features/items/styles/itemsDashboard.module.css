@@ -1,0 +1,13 @@
+.title {
+  margin-top: 0;
+}
+
+.grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.error {
+  color: crimson;
+}
