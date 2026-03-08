@@ -18,6 +18,8 @@ import AdminClaimsPage from "../features/admin/pages/AdminClaimsPage";
 import ItemsDashboardPage from "../features/items/pages/ItemsDashboardPage";
 import ItemDetailsPage from "../features/items/pages/ItemDetailsPage";
 import EditItemPage from "../features/items/pages/EditItemPage";
+import CreateLostItemPage from "../features/items/pages/CreateLostItemPage";
+import CreateFoundItemPage from "../features/items/pages/CreateFoundItemPage";
 
 export const router = createBrowserRouter(
   [
@@ -95,6 +97,22 @@ export const router = createBrowserRouter(
             <EditItemPage />
           </RequireAuth>
             ),
+        },
+        {
+          path: "items/report-lost",
+          element: (
+            <RequireAuth>
+              <CreateLostItemPage />
+            </RequireAuth>
+          ),
+        },
+        {
+          path: "items/report-found",
+          element: (
+            <RequireAuth>
+              <CreateFoundItemPage />
+            </RequireAuth>
+          ),
         },
       ],
           },

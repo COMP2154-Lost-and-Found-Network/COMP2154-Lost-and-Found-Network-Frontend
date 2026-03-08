@@ -24,31 +24,34 @@ export default function Navbar() {
 
         {/* Logged-in user links */}
         {isAuthed && (
-          <Link style={styles.link} to="/profile">
-            Profile
-          </Link>
-          
-        )}
-        {isAuthed && (
-          <Link style={styles.link} to="/items">
-            Dashboard
-          </Link>
-          
-        )}
-
-        {/* Admin-only links */}
-        {isAuthed && isAdmin && (
           <>
-            <Link style={styles.link} to="/admin">
-              Admin
+            <Link style={styles.link} to="/items/report-lost">
+              Lost Items
             </Link>
-            <Link style={styles.link} to="/admin/items">
-              Items
+            <Link style={styles.link} to="/items/report-found">
+              Found Items
             </Link>
-            <Link style={styles.link} to="/admin/claims">
-              Claims
+            <Link style={styles.link} to="/items">
+              Dashboard
+            </Link>
+            <Link style={styles.link} to="/profile">
+              Profile
             </Link>
           </>
+        )}
+
+        {/* Admin-only link */}
+        {isAuthed && isAdmin && (
+          <Link style={styles.link} to="/admin">
+            Admin
+          </Link>
+        )}
+
+        {/* Claims link */}
+        {isAuthed && (
+          <Link style={styles.link} to="/items">
+            Claims
+          </Link>
         )}
       </div>
 
