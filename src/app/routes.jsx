@@ -13,6 +13,8 @@ import NotFound from "../components/NotFound";
 import AdminDashboardPage from "../features/admin/pages/AdminDashboardPage";
 import AdminItemsPage from "../features/admin/pages/AdminItemsPage";
 import AdminClaimsPage from "../features/admin/pages/AdminClaimsPage";
+import AdminManageDataPage from "../features/admin/pages/AdminManageDataPage";
+
 
 // Items pages
 import ItemsDashboardPage from "../features/items/pages/ItemsDashboardPage";
@@ -25,6 +27,7 @@ import CreateFoundItemPage from "../features/items/pages/CreateFoundItemPage";
 import MyClaimsPage from "../features/claims/pages/MyClaimsPage";
 import ClaimDetailsPage from "../features/claims/pages/ClaimDetailsPage";
 import ClaimWithdrawnSuccessPage from "../features/claims/pages/ClaimWithdrawnSuccessPage";
+
 
 
 
@@ -79,6 +82,14 @@ export const router = createBrowserRouter(
             <RequireAdmin>
               <AdminClaimsPage />
             </RequireAdmin>
+          ),
+        },
+        {
+          path: "admin/manage-data",
+          element: (
+          <RequireAdmin>
+            <AdminManageDataPage />
+          </RequireAdmin>
           ),
         },
         { //Items
@@ -145,6 +156,7 @@ export const router = createBrowserRouter(
           </RequireAuth>
           ),
         },
+        
       ],
           },
           //Global catch-all
