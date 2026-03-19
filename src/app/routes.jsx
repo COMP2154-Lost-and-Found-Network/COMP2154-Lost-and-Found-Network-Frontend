@@ -13,6 +13,8 @@ import NotFound from "../components/NotFound";
 import AdminDashboardPage from "../features/admin/pages/AdminDashboardPage";
 import AdminItemsPage from "../features/admin/pages/AdminItemsPage";
 import AdminClaimsPage from "../features/admin/pages/AdminClaimsPage";
+import AdminManageDataPage from "../features/admin/pages/AdminManageDataPage";
+
 
 // Items pages
 import ItemsDashboardPage from "../features/items/pages/ItemsDashboardPage";
@@ -20,6 +22,14 @@ import ItemDetailsPage from "../features/items/pages/ItemDetailsPage";
 import EditItemPage from "../features/items/pages/EditItemPage";
 import CreateLostItemPage from "../features/items/pages/CreateLostItemPage";
 import CreateFoundItemPage from "../features/items/pages/CreateFoundItemPage";
+
+// Item claims
+import MyClaimsPage from "../features/claims/pages/MyClaimsPage";
+import ClaimDetailsPage from "../features/claims/pages/ClaimDetailsPage";
+import ClaimWithdrawnSuccessPage from "../features/claims/pages/ClaimWithdrawnSuccessPage";
+
+
+
 
 export const router = createBrowserRouter(
   [
@@ -75,6 +85,14 @@ export const router = createBrowserRouter(
           ),
         },
         {
+          path: "admin/manage-data",
+          element: (
+          <RequireAdmin>
+            <AdminManageDataPage />
+          </RequireAdmin>
+          ),
+        },
+        { //Items
           path: "items",
           element: (
           <RequireAuth>
@@ -114,6 +132,31 @@ export const router = createBrowserRouter(
             </RequireAuth>
           ),
         },
+        { //Claims
+          path: "claims",
+          element: (
+            <RequireAuth>
+              <MyClaimsPage />
+            </RequireAuth>
+            ),
+        },
+        {
+          path: "claims/:claimId",
+          element: (
+            <RequireAuth>
+              <ClaimDetailsPage />
+            </RequireAuth>
+            ),
+        },
+        {
+          path: "claims/:claimId/withdrawn-success",
+          element: (
+          <RequireAuth>
+            <ClaimWithdrawnSuccessPage />
+          </RequireAuth>
+          ),
+        },
+        
       ],
           },
           //Global catch-all

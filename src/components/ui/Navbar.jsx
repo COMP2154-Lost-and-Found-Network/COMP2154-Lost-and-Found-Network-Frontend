@@ -42,8 +42,13 @@ export default function Navbar() {
 
         {/* Admin-only link */}
         {isAuthed && isAdmin && (
-          <Link style={styles.link} to="/admin">
-            Admin
+        <Link style={styles.link} to="/admin">
+          Admin
+        </Link>
+        )}
+        {isAuthed && isAdmin && (
+          <Link style={styles.link} to="/admin/manage-data">
+            Manage Data
           </Link>
         )}
 
