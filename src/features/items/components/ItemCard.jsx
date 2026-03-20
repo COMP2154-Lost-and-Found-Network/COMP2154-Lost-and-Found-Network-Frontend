@@ -46,7 +46,7 @@ export default function ItemCard({ item, onSoftDelete }) {
               onClick={() => onSoftDelete?.(item.id)}
               className={styles.deleteBtn}
             >
-              Soft Delete
+              Delete
             </button>
           </div>
         </div>

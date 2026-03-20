@@ -7,7 +7,7 @@ export default function ItemsDashboardPage() {
   const { items, isLoading, error } = useItems();
 
   function softDelete(id) {
-    alert(`Soft delete ${id}`);
+    alert(`Delete ${id}`);
   }
 
   return (
