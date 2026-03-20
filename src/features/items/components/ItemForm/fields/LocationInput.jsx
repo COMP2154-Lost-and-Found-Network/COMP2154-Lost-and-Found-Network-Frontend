@@ -1,41 +1,45 @@
 import styles from "../ItemForm.module.css";
 
-const CAMPUSES = [
-  "St. James Campus",
-  "Casa Loma Campus",
-  "Waterfront Campus",
+// IDs match the seeded locations in the database
+const LOCATIONS = [
+  { id: 1, name: "St. James – Building A (Main)" },
+  { id: 2, name: "St. James – Building B" },
+  { id: 3, name: "St. James – Library" },
+  { id: 4, name: "Casa Loma – Building C" },
+  { id: 5, name: "Casa Loma – Building H (Gym)" },
+  { id: 6, name: "Waterfront – Building W" },
 ];
 
-export default function LocationInput({ campus, location, onCampusChange, onLocationChange, campusError }) {
+export default function LocationInput({ locationId, locationDetails, onLocationIdChange, onLocationDetailsChange, locationError }) {
   return (
     <>
       <div className={styles.field}>
         <label className={styles.label}>
-          Campus <span className={styles.required}>*</span>
+          Location <span className={styles.required}>*</span>
         </label>
         <select
           className={styles.select}
-          value={campus}
-          onChange={(e) => onCampusChange(e.target.value)}
+          value={locationId}
+          onChange={(e) => onLocationIdChange(Number(e.target.value) || "")}
         >
-          <option value="">Select a campus</option>
-          {CAMPUSES.map((c) => (
-            <option key={c} value={c}>
-              {c}
+          <option value="">Select a location</option>
+          {LOCATIONS.map((loc) => (
+            <option key={loc.id} value={loc.id}>
+              {loc.name}
             </option>
           ))}
         </select>
-        {campusError && <span className={styles.fieldError}>{campusError}</span>}
+        {locationError && <span className={styles.fieldError}>{locationError}</span>}
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Location</label>
+        <label className={styles.label}>Specific Details</label>
         <input
           className={styles.input}
           type="text"
           placeholder="e.g. Bathroom, Room 301, Cafeteria..."
-          value={location}
-          onChange={(e) => onLocationChange(e.target.value)}
+          value={locationDetails}
+          onChange={(e) => onLocationDetailsChange(e.target.value)}
         />
       </div>
     </>

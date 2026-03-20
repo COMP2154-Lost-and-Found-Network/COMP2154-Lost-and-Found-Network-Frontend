@@ -2,11 +2,12 @@ import { useState } from "react";
 import { validateItemForm } from "../utils/itemValidation";
 
 const INITIAL_VALUES = {
-  category: "",
+  title: "",
+  category_id: "",
   description: "",
   date: "",
-  campus: "",
-  location: "",
+  location_id: "",
+  location_details: "",
   image: null,
 };
 

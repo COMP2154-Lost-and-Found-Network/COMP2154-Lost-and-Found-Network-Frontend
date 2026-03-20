@@ -25,10 +25,24 @@ export default function ItemForm({
     <form className={styles.form} onSubmit={handleSubmit}>
       {formError && <div className={styles.formError}>{formError}</div>}
 
+      <div className={styles.field}>
+        <label className={styles.label}>
+          Title <span className={styles.required}>*</span>
+        </label>
+        <input
+          className={styles.input}
+          type="text"
+          placeholder="e.g. Black iPhone 13, Blue Backpack..."
+          value={values.title}
+          onChange={(e) => onFieldChange("title", e.target.value)}
+        />
+        {errors.title && <span className={styles.fieldError}>{errors.title}</span>}
+      </div>
+
       <CategorySelect
-        value={values.category}
-        onChange={(v) => onFieldChange("category", v)}
-        error={errors.category}
+        value={values.category_id}
+        onChange={(v) => onFieldChange("category_id", v)}
+        error={errors.category_id}
       />
 
       <DescriptionTextArea
@@ -45,11 +59,11 @@ export default function ItemForm({
       />
 
       <LocationInput
-        campus={values.campus}
-        location={values.location}
-        onCampusChange={(v) => onFieldChange("campus", v)}
-        onLocationChange={(v) => onFieldChange("location", v)}
-        campusError={errors.campus}
+        locationId={values.location_id}
+        locationDetails={values.location_details}
+        onLocationIdChange={(v) => onFieldChange("location_id", v)}
+        onLocationDetailsChange={(v) => onFieldChange("location_details", v)}
+        locationError={errors.location_id}
       />
 
       <ImageUpload

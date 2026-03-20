@@ -3,13 +3,15 @@ import { useNavigate, Link } from "react-router-dom";
 import ItemForm from "../components/ItemForm/ItemForm";
 import useItemForm from "../hooks/useItemForm";
 import { createItem } from "../api/itemsApi";
+import { useAuth } from "../../../context/useAuth";
 
 export default function CreateLostItemPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [submitted, setSubmitted] = useState(false);
 
   async function handleFormSubmit(values) {
-    await createItem({ ...values, type: "LOST" });
+    await createItem({ ...values, type: "LOST", user_id: user.id });
     setSubmitted(true);
   }
 

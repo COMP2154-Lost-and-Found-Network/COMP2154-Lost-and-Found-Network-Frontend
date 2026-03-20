@@ -5,8 +5,12 @@
 export function validateItemForm(values, { imageRequired = false } = {}) {
   const errors = {};
 
-  if (!values.category) {
-    errors.category = "Category is required";
+  if (!values.title || values.title.trim().length < 3) {
+    errors.title = "Title must be at least 3 characters";
+  }
+
+  if (!values.category_id) {
+    errors.category_id = "Category is required";
   }
 
   if (!values.description || !values.description.trim()) {
@@ -24,8 +28,8 @@ export function validateItemForm(values, { imageRequired = false } = {}) {
     }
   }
 
-  if (!values.campus) {
-    errors.campus = "Campus is required";
+  if (!values.location_id) {
+    errors.location_id = "Location is required";
   }
 
   if (imageRequired && !values.image) {

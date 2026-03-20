@@ -1,13 +1,20 @@
 import PageContainer from "../../../components/ui/PageContainer";
 import useItems from "../hooks/useItems";
 import ItemCard from "../components/ItemCard";
+import { softDeleteItem } from "../api/itemsApi";
 import styles from "../styles/itemsDashboard.module.css";
 
 export default function ItemsDashboardPage() {
-  const { items, isLoading, error } = useItems();
+  const { items, isLoading, error, refresh } = useItems();
 
-  function softDelete(id) {
-    alert(`Soft delete ${id}`);
+  async function softDelete(id) {
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
+    try {
+      await softDeleteItem(id);
+      refresh();
+    } catch (e) {
+      alert(e.message || "Failed to delete item");
+    }
   }
 
   return (

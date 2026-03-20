@@ -1,4 +1,5 @@
 import http from "../../../services/httpClient";
+import { getToken } from "../../../services/authStorage";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
 
@@ -83,20 +84,43 @@ async function mockSoftDeleteItem(id) {
 
 //REAL VERSION
 
+function mapItem(item) {
+  return { ...item, imageUrl: item.image_url ?? null };
+}
+
 async function realListItems() {
-  return await http.get("/items");
+  const items = await http.get("/items", { token: getToken() });
+  return items.map(mapItem);
 }
 
 async function realGetItemById(id) {
-  return await http.get(`/items/${id}`);
+  const item = await http.get(`/items/${id}`, { token: getToken() });
+  return mapItem(item);
 }
 
 async function realUpdateItem(id, updatedFields) {
-  return await http.put(`/items/${id}`, updatedFields);
+  const payload = { ...updatedFields };
+  delete payload.imageFile;
+
+  if (updatedFields.imageFile) {
+    const formData = new FormData();
+    formData.append("image", updatedFields.imageFile);
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const uploadRes = await fetch(`${BASE_URL}/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${getToken()}` },
+      body: formData,
+    });
+    const uploadData = await uploadRes.json();
+    if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
+    payload.image_url = uploadData.url;
+  }
+
+  return await http.put(`/items/${id}`, payload, { token: getToken() });
 }
 
 async function realSoftDeleteItem(id) {
-  return await http.patch(`/items/${id}/soft-delete`);
+  return await http.delete(`/items/${id}`, { token: getToken() });
 }
 
 async function mockCreateItem(data) {
@@ -117,36 +141,37 @@ async function mockCreateItem(data) {
 }
 
 async function realCreateItem(data) {
-  const formData = new FormData();
-  formData.append("category", data.category);
-  formData.append("description", data.description);
-  formData.append("date", data.date);
-  formData.append("campus", data.campus);
-  if (data.location) formData.append("location", data.location);
-  formData.append("type", data.type || "LOST");
+  let image_url = null;
+
   if (data.image) {
+    const formData = new FormData();
     formData.append("image", data.image);
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const uploadRes = await fetch(`${BASE_URL}/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${getToken()}` },
+      body: formData,
+    });
+    const uploadData = await uploadRes.json();
+    if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
+    image_url = uploadData.url;
   }
 
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const res = await fetch(`${BASE_URL}/items`, {
-    method: "POST",
-    body: formData,
-  });
-
-  let responseData = null;
-  try {
-    responseData = await res.json();
-  } catch {
-    // ignore non-JSON
-  }
-
-  if (!res.ok) {
-    const msg = responseData?.message || `Request failed (${res.status})`;
-    throw new Error(msg);
-  }
-
-  return responseData;
+  return await http.post(
+    "/items",
+    {
+      user_id: data.user_id,
+      category_id: data.category_id,
+      location_id: data.location_id,
+      title: data.title,
+      description: data.description,
+      date: data.date,
+      type: data.type?.toLowerCase(),
+      location_details: data.location_details || null,
+      image_url,
+    },
+    { token: getToken() }
+  );
 }
 
 //Public
