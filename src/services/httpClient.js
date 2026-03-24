@@ -6,6 +6,11 @@ async function request(path, { method = "GET", body, token } = {}) {
     throw new Error("Api is not set. Check your .env file!");
   }
 
+  // TEMP: block claims inbox call until backend supports it
+  if (path && path.includes("/claims/inbox")) {
+    return [];
+  }
+
   const headers = { "Content-Type": "application/json" };
 
   if (token) {
