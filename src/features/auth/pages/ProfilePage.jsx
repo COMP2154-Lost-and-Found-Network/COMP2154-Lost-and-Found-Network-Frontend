@@ -1,85 +1,117 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import ProfileCard from "../components/ProfileCard";
 import { useAuth } from "../../../context/useAuth";
+import * as itemsApi from "../../items/api/itemsApi";
+import * as claimsApi from "../../claims/api/claimsApi";
 import styles from "../styles/Profile.module.css";
 
-//Choose badge style based on status text
 function badgeClass(type, value) {
   const v = String(value || "").toLowerCase();
-
   if (type === "item") {
     if (v === "lost") return `${styles.badge} ${styles.badgeLost}`;
     if (v === "found") return `${styles.badge} ${styles.badgeFound}`;
   }
-
   if (type === "claim") {
     if (v === "pending") return `${styles.badge} ${styles.badgePending}`;
     if (v === "approved") return `${styles.badge} ${styles.badgeApproved}`;
+    if (v === "rejected") return `${styles.badge} ${styles.badgeRejected}`;
   }
-
   return styles.badge;
+}
+
+function formatDate(value) {
+  if (!value) return "N/A";
+  return new Date(value).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const [myItems, setMyItems] = useState([]);
+  const [claimHistory, setClaimHistory] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(true);
+  const [loadingClaims, setLoadingClaims] = useState(true);
 
-  //Temporary mock data until backend is made
-  const myItems = useMemo(
-    () => [
-      { id: 101, title: "Black wallet", status: "Lost", date: "2026-02-20" },
-      { id: 102, title: "AirPods case", status: "Found", date: "2026-02-22" },
-    ],
-    []
-  );
+  useEffect(() => {
+    async function loadItems() {
+      try {
+        const data = await itemsApi.listMyItems();
+        setMyItems(data);
+      } catch {
+        // silently fail — profile still shows
+      } finally {
+        setLoadingItems(false);
+      }
+    }
 
-  const claimHistory = useMemo(
-    () => [
-      { id: 201, itemTitle: "Black wallet", claimStatus: "Pending", date: "2026-02-23" },
-      { id: 202, itemTitle: "Laptop charger", claimStatus: "Approved", date: "2026-02-18" },
-    ],
-    []
-  );
+    async function loadClaims() {
+      try {
+        const data = await claimsApi.listMyClaims(user?.id);
+        setClaimHistory(Array.isArray(data) ? data : []);
+      } catch {
+        // silently fail
+      } finally {
+        setLoadingClaims(false);
+      }
+    }
+
+    loadItems();
+    if (user?.id) loadClaims();
+  }, [user?.id]);
 
   return (
     <div className={styles.page}>
       <h1>Profile</h1>
 
-      {/*User info*/}
       <ProfileCard user={user} />
 
-      {/*My Items*/}
       <h2 className={styles.sectionTitle}>My Items</h2>
-      {myItems.length === 0 ? (
-        <p>No items yet.</p>
+      {loadingItems ? (
+        <p className={styles.meta}>Loading...</p>
+      ) : myItems.length === 0 ? (
+        <div className={styles.emptyState}>
+          <p>You haven't reported any items yet.</p>
+          <Link to="/items/report-lost" className={styles.emptyLink}>Report an Item</Link>
+        </div>
       ) : (
         <ul className={styles.list}>
           {myItems.map((item) => (
             <li key={item.id} className={styles.row}>
               <div className={styles.rowTop}>
-                <div className={styles.rowTitle}>{item.title}</div>
-                <span className={badgeClass("item", item.status)}>{item.status}</span>
+                <Link to={`/items/${item.id}`} className={styles.rowTitle}>{item.title}</Link>
+                <span className={badgeClass("item", item.type)}>{item.type}</span>
               </div>
-
-              <div className={styles.meta}>Date: {item.date}</div>
+              <div className={styles.meta}>
+                {formatDate(item.date)} &middot; {item.location || "No location"}
+              </div>
             </li>
           ))}
         </ul>
       )}
 
-      {/*Claim History*/}
       <h2 className={styles.sectionTitle}>Claim History</h2>
-      {claimHistory.length === 0 ? (
-        <p>No claims yet.</p>
+      {loadingClaims ? (
+        <p className={styles.meta}>Loading...</p>
+      ) : claimHistory.length === 0 ? (
+        <div className={styles.emptyState}>
+          <p>You haven't submitted any claims yet.</p>
+          <Link to="/browse" className={styles.emptyLink}>Browse Items</Link>
+        </div>
       ) : (
         <ul className={styles.list}>
           {claimHistory.map((c) => (
             <li key={c.id} className={styles.row}>
               <div className={styles.rowTop}>
-                <div className={styles.rowTitle}>{c.itemTitle}</div>
-                <span className={badgeClass("claim", c.claimStatus)}>{c.claimStatus}</span>
+                <Link to={`/claims/${c.id}`} className={styles.rowTitle}>
+                  {c.item_title || `Claim #${c.id}`}
+                </Link>
+                <span className={badgeClass("claim", c.status)}>{c.status}</span>
               </div>
-
-              <div className={styles.meta}>Date: {c.date}</div>
+              <div className={styles.meta}>{formatDate(c.created_at)}</div>
             </li>
           ))}
         </ul>
