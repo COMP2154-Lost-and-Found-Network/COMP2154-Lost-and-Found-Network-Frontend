@@ -203,12 +203,19 @@ export default function ClaimDetailsPage() {
             </div>
           )}
 
-          {claim.status === "approved" && claim.contact_shared_at && (
+          {claim.status === "approved" && (
             <div className={styles.feedbackBox}>
               <h2 className={styles.sectionTitle}>Contact Information</h2>
-              <p className={styles.text}>
-                <strong>Contact Shared:</strong> {formatDateTime(claim.contact_shared_at)}
-              </p>
+              {claim.claimant_email && (
+                <p className={styles.text}>
+                  <strong>Email:</strong> {claim.claimant_email}
+                </p>
+              )}
+              {claim.contact_shared_at && (
+                <p className={styles.text}>
+                  <strong>Contact Shared:</strong> {formatDateTime(claim.contact_shared_at)}
+                </p>
+              )}
             </div>
           )}
 
