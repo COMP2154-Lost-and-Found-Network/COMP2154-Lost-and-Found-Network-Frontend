@@ -1,0 +1,156 @@
+/* Main page container */
+.browse-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Header section */
+.browse-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.browse-header h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.browse-header button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #1f3c88;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.browse-header button:hover {
+  background-color: #162c63;
+}
+
+/* Search section */
+.browse-search {
+  width: 100%;
+}
+
+.browse-search-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* Filters container */
+.browse-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Individual filter box */
+.browse-filter-box {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.browse-filter-box label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.browse-select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  font-size: 14px;
+}
+
+/* View toggle buttons */
+.browse-view-toggle {
+  display: flex;
+  gap: 10px;
+}
+
+.browse-view-toggle button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  background-color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.browse-view-toggle button:hover {
+  background-color: #f3f4f6;
+}
+
+.toggle-button {
+  margin-left: 4px;
+}
+
+/* Item listings container */
+.browse-items {
+  display: grid;
+  gap: 28px;
+  margin-top: 10px;
+}
+
+/* Grid view layout */
+.grid-view {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* List view layout */
+.list-view {
+  grid-template-columns: 1fr;
+}
+
+/* Status badges for items */
+.item-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Approved - green */
+.item-status-badge.approved {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+/* Found - light blue */
+.item-status-badge.found {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+/* Pending - light yellow */
+.item-status-badge.pending {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+/* Lost - light red */
+.item-status-badge.lost {
+  background-color: #fee2e2;
+  color: #991b1b;
+}

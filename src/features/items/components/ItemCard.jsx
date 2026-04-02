@@ -3,12 +3,27 @@ import StatusPill from "./StatusPill";
 import styles from "../styles/itemCard.module.css";
 
 export default function ItemCard({ item, onSoftDelete, readOnly = false }) {
+  const formattedDate = item.date
+    ? new Date(item.date).toLocaleDateString("en-CA", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "N/A";
+
+  const imageSrc =
+    item.imagePreview ||
+    item.imageUrl ||
+    (item.image_url
+      ? `${import.meta.env.VITE_API_BASE_URL}${item.image_url}`
+      : null);
+
   return (
     <div className={styles.card}>
       <div className={styles.left}>
-        {item.imageUrl ? (
+        {imageSrc ? (
           <img
-            src={item.imageUrl}
+            src={imageSrc}
             alt={item.title}
             className={styles.image}
           />
@@ -23,7 +38,7 @@ export default function ItemCard({ item, onSoftDelete, readOnly = false }) {
 
           <div className={styles.details}>
             <div>
-              <strong>Date:</strong> {item.date}
+              <strong>Date:</strong> {formattedDate}
             </div>
             <div>
               <strong>Location:</strong> {item.location}

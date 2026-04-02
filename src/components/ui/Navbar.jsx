@@ -81,14 +81,14 @@ export default function Navbar() {
 
         {/* Admin-only links */}
         {isAuthed && isAdmin && (
-          <>
-            <Link style={styles.link} to="/admin">
-              Admin
-            </Link>
-            <Link style={styles.link} to="/admin/manage-data">
-              Manage Data
-            </Link>
-          </>
+        <Link style={styles.link} to="/admin">
+          Admin
+        </Link>
+        )}
+        {isAuthed && isAdmin && (
+          <Link style={styles.link} to="/admin/manage-data">
+            Manage Data
+          </Link>
         )}
       </div>
 

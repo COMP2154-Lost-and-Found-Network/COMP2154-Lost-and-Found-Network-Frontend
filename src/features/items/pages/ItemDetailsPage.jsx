@@ -79,9 +79,11 @@ export default function ItemDetailsPage() {
           </div>
 
           <div className={styles.actions}>
-            <button className={styles.claimBtn} onClick={handleClaim}>
-              Claim Item
-            </button>
+            {item.type?.toLowerCase() === "found" && (
+              <button className={styles.claimBtn} onClick={handleClaim}>
+                Claim Item
+              </button>
+            )}
 
             <Link to={`/items/${item.id}/edit`} className={styles.editBtn}>
               Edit

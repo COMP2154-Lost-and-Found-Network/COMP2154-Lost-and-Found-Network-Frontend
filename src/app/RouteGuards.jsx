@@ -1,10 +1,9 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 
-// Protects private routes: if the user isn't authenticated, redirect to login
+// TEMPORARY: bypass authentication 
 export function RequireAuth({ children }) {
-  const { isAuthed } = useAuth();
-  return isAuthed ? children : <Navigate to="/login" replace />;
+  return children;
 }
 
 // Blocks access unless user is logged in and has the ADMIN role
