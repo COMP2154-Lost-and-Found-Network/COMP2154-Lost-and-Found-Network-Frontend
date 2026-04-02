@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import ItemCard from "../components/ItemCard";
+import { getToken } from "../../../services/authStorage";
 import "../../../styles/BrowsePage.css";
 
 export default function BrowsePage() {
@@ -27,7 +28,10 @@ export default function BrowsePage() {
           throw new Error("API is not set. Check your .env file.");
         }
 
-        const response = await fetch(`${apiBaseUrl}/items`);
+        const token = getToken();
+        const response = await fetch(`${apiBaseUrl}/items`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
 
         if (!response.ok) {
           throw new Error("Failed to load items.");
