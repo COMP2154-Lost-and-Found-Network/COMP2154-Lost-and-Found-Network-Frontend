@@ -115,8 +115,8 @@ async function mockWithdrawClaim(claimId, userId) {
 
 //Real data
 
-async function realListMyClaims() {
-  return await http.get("/claims/my-claims", { token: getToken() });
+async function realListMyClaims(userId) {
+  return await http.get(`/claims?claimant_id=${userId}`, { token: getToken() });
 }
 
 async function realGetMyClaimById(claimId) {
@@ -124,7 +124,7 @@ async function realGetMyClaimById(claimId) {
 }
 
 async function realWithdrawClaim(claimId) {
-  return await http.patch(`/claims/${claimId}/withdraw`, null, { token: getToken() });
+  return await http.delete(`/claims/${claimId}/withdraw`, { token: getToken() });
 }
 
 async function realSubmitClaim(itemId, data) {
@@ -134,7 +134,7 @@ async function realSubmitClaim(itemId, data) {
 //Public
 
 export async function listMyClaims(userId) {
-  return USE_MOCK ? mockListMyClaims(userId) : realListMyClaims();
+  return USE_MOCK ? mockListMyClaims(userId) : realListMyClaims(userId);
 }
 
 export async function getMyClaimById(claimId, userId) {
