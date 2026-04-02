@@ -92,6 +92,7 @@ async function mockGetDashboardMetrics() {
   return {
     totalItems: mockItems.length,
     activeClaims: mockClaims.filter((claim) => claim.status === "pending").length,
+    pendingDisputes: 0,
   };
 }
 

@@ -62,6 +62,13 @@ export default function AdminDashboardPage() {
               {metrics ? metrics.activeClaims : "..."}
             </p>
           </div>
+
+          <div className={styles.metricCard}>
+            <p className={styles.metricLabel}>Pending Disputes</p>
+            <p className={styles.metricValue}>
+              {metrics ? (metrics.pendingDisputes ?? 0) : "..."}
+            </p>
+          </div>
         </div>
 
         <div className={styles.activityCard}>
