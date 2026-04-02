@@ -24,10 +24,9 @@ export default function useClaims(userId) {
   }, [userId]);
 
   useEffect(() => {
-    // Disabled automatic claims fetch temporarily to prevent API errors
-    // if (userId) {
-    //   refreshClaims();
-    // }
+    if (userId) {
+      refreshClaims();
+    }
   }, [userId, refreshClaims]);
 
   return {

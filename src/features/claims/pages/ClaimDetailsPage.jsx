@@ -9,7 +9,13 @@ import styles from "../styles/claimDetailsPage.module.css";
 
 function formatDateTime(value) {
   if (!value) return "N/A";
-  return new Date(value).toLocaleString();
+  return new Date(value).toLocaleString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export default function ClaimDetailsPage() {

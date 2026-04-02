@@ -71,7 +71,10 @@ export default function Navbar() {
             </Link>
 
             <Link style={styles.link} to="/claims">
-              Claims
+              My Claims
+            </Link>
+            <Link style={styles.link} to="/claims/inbox">
+              Claims Inbox
             </Link>
             <Link style={styles.link} to="/profile">
               Profile

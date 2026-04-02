@@ -53,7 +53,7 @@ export default function ClaimSubmitPage() {
           body: formData,
         });
         const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
+        if (!uploadRes.ok) throw new Error("We couldn't upload your image right now. Please try again or submit without an image.");
         image_url = uploadData.url;
       }
 
