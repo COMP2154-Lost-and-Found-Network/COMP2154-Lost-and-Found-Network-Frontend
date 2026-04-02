@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import PageContainer from "../../../components/ui/PageContainer";
 import { useAuth } from "../../../context/useAuth";
 import * as claimsApi from "../api/claimsApi";
+import * as itemsApi from "../../items/api/itemsApi";
 import ClaimStatusPill from "../components/ClaimStatusPill";
 import styles from "../styles/claimDetailsPage.module.css";
 
@@ -17,77 +18,85 @@ export default function ClaimDetailsPage() {
   const navigate = useNavigate();
 
   const [claim, setClaim] = useState(null);
+  const [item, setItem] = useState(null);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [actionInProgress, setActionInProgress] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectFeedback, setRejectFeedback] = useState("");
 
+  async function loadClaim() {
+    try {
+      setError("");
+      setIsLoading(true);
+      const claimData = await claimsApi.getMyClaimById(claimId, user?.id);
+      setClaim(claimData);
+
+      if (claimData.item_id) {
+        try {
+          const itemData = await itemsApi.getItemById(claimData.item_id);
+          setItem(itemData);
+        } catch {
+          // item fetch is supplementary — don't block the page
+        }
+      }
+    } catch (e) {
+      setError(e.message || "Failed to load claim");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
-    setError("");
-
-    setClaim({
-      id: claimId,
-
-      // IDs
-      item_id: "123",
-      claimant_id: "456",
-
-      // Item info
-      item_title: "Black Leather Wallet",
-      item_description: "A black leather wallet found near the campus library entrance.",
-      item_location: "Library entrance near the benches",
-      item_date: "2026-03-18T14:30:00Z",
-
-      // Claimant info
-      claimant_name: "John Doe",
-      contact_name: "John Doe",
-      contact_email: "john.doe@example.com",
-      contact_phone: "(416) 555-0123",
-
-      // Claim info
-      status: "pending",
-      created_at: "2026-03-20T10:00:00Z",
-      updated_at: "2026-03-20T10:00:00Z",
-      reviewed_at: null,
-      contact_shared_at: null,
-
-      // Verification
-      verification_details:
-        "Claimant stated the wallet contains two credit cards, a student ID, and described the inner lining color correctly.",
-
-      // Feedback (for rejected case)
-      rejection_feedback: "",
-    });
+    loadClaim();
   }, [claimId]);
 
   async function handleWithdraw() {
+    if (!window.confirm("Withdraw this claim? This cannot be undone.")) return;
     try {
+      setActionInProgress(true);
       await claimsApi.withdrawClaim(claimId, user.id);
       navigate(`/claims/${claimId}/withdrawn-success`);
     } catch (e) {
       alert(e.message || "Failed to withdraw claim");
+    } finally {
+      setActionInProgress(false);
     }
   }
 
-  function handleOpenRejectModal() {
-    setShowRejectModal(true);
+  async function handleApprove() {
+    if (!window.confirm("Approve this claim? The claimant will be notified.")) return;
+    try {
+      setActionInProgress(true);
+      await claimsApi.approveClaim(claimId);
+      await loadClaim();
+    } catch (e) {
+      alert(e.message || "Failed to approve claim");
+    } finally {
+      setActionInProgress(false);
+    }
   }
 
-  function handleSubmitRejection() {
-    setClaim((prev) => ({
-      ...prev,
-      status: "rejected",
-      rejection_feedback: rejectFeedback.trim(),
-    }));
-    setShowRejectModal(false);
-    setRejectFeedback("");
+  async function handleSubmitRejection() {
+    try {
+      setActionInProgress(true);
+      await claimsApi.rejectClaim(claimId);
+      setShowRejectModal(false);
+      setRejectFeedback("");
+      await loadClaim();
+    } catch (e) {
+      alert(e.message || "Failed to reject claim");
+    } finally {
+      setActionInProgress(false);
+    }
   }
 
-  function handleApproveClaim() {
-    setClaim((prev) => ({
-      ...prev,
-      status: "approved",
-      contact_shared_at: new Date().toISOString(),
-    }));
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <p>Loading...</p>
+      </PageContainer>
+    );
   }
 
   if (error) {
@@ -98,34 +107,10 @@ export default function ClaimDetailsPage() {
     );
   }
 
-  if (!claim) {
-    return (
-      <PageContainer>
-        <p>Loading...</p>
-      </PageContainer>
-    );
-  }
+  if (!claim) return null;
 
-  const itemDetails = {
-    title: claim.item_title || "Unknown Item",
-    description:
-      claim.item_description ||
-      claim.item_summary ||
-      "Item description will appear here once the review flow is fully connected.",
-    location:
-      claim.location_details ||
-      claim.item_location ||
-      "Location details will appear here once connected.",
-    date: claim.item_date || claim.created_at,
-  };
-
-  const claimantDetails = {
-    name: claim.claimant_name || `Claimant #${claim.claimant_id || "N/A"}`,
-    submittedAt: claim.created_at,
-    verification:
-      claim.verification_details ||
-      "Verification details will appear here once connected.",
-  };
+  const isOwner = item && item.user_id === user?.id;
+  const isClaimant = claim.claimant_id === user?.id;
 
   return (
     <PageContainer>
@@ -133,12 +118,13 @@ export default function ClaimDetailsPage() {
         <div className={styles.card}>
           <div className={styles.headerRow}>
             <div>
-              <h1 className={styles.title}>{claim.item_title}</h1>
+              <h1 className={styles.title}>
+                {claim.item_title || item?.title || `Claim #${claim.id}`}
+              </h1>
               <p className={styles.meta}>
-                Created: {formatDateTime(claim.created_at)}
+                Submitted: {formatDateTime(claim.created_at)}
               </p>
             </div>
-
             <ClaimStatusPill status={claim.status} />
           </div>
 
@@ -161,17 +147,24 @@ export default function ClaimDetailsPage() {
               >
                 <h3 style={{ marginTop: 0, marginBottom: "12px" }}>Item Details</h3>
                 <p className={styles.text}>
-                  <strong>Title:</strong> {itemDetails.title}
+                  <strong>Title:</strong> {item?.title || claim.item_title || "N/A"}
                 </p>
                 <p className={styles.text}>
-                  <strong>Description:</strong> {itemDetails.description}
+                  <strong>Description:</strong> {item?.description || "N/A"}
                 </p>
                 <p className={styles.text}>
-                  <strong>Location:</strong> {itemDetails.location}
+                  <strong>Location:</strong> {item?.location || item?.location_details || "N/A"}
                 </p>
                 <p className={styles.text}>
-                  <strong>Date:</strong> {formatDateTime(itemDetails.date)}
+                  <strong>Date:</strong> {formatDateTime(item?.date || claim.created_at)}
                 </p>
+                {item?.imageUrl && (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    style={{ width: "100%", borderRadius: 8, marginTop: 8 }}
+                  />
+                )}
               </div>
 
               <div
@@ -184,13 +177,17 @@ export default function ClaimDetailsPage() {
               >
                 <h3 style={{ marginTop: 0, marginBottom: "12px" }}>Claim Details</h3>
                 <p className={styles.text}>
-                  <strong>Claimant:</strong> {claimantDetails.name}
+                  <strong>Claimant:</strong>{" "}
+                  {claim.claimant_first_name
+                    ? `${claim.claimant_first_name} ${claim.claimant_last_name}`
+                    : `Claimant #${claim.claimant_id}`}
                 </p>
                 <p className={styles.text}>
-                  <strong>Submitted:</strong> {formatDateTime(claimantDetails.submittedAt)}
+                  <strong>Submitted:</strong> {formatDateTime(claim.created_at)}
                 </p>
                 <p className={styles.text}>
-                  <strong>Verification:</strong> {claimantDetails.verification}
+                  <strong>Verification:</strong>{" "}
+                  {claim.verification_details || "No details provided"}
                 </p>
                 <p className={styles.text}>
                   <strong>Claim ID:</strong> {claim.id}
@@ -199,26 +196,16 @@ export default function ClaimDetailsPage() {
             </div>
           </div>
 
-          {claim.status === "rejected" && (
+          {claim.status === "rejected" && claim.reporter_feedback && (
             <div className={styles.feedbackBox}>
-              <h2 className={styles.sectionTitle}>Finder Feedback</h2>
-              <p className={styles.feedbackText}>
-                {claim.rejection_feedback || "No feedback provided"}
-              </p>
+              <h2 className={styles.sectionTitle}>Feedback</h2>
+              <p className={styles.feedbackText}>{claim.reporter_feedback}</p>
             </div>
           )}
-          {claim.status === "approved" && (
+
+          {claim.status === "approved" && claim.contact_shared_at && (
             <div className={styles.feedbackBox}>
               <h2 className={styles.sectionTitle}>Contact Information</h2>
-              <p className={styles.text}>
-                <strong>Name:</strong> {claim.contact_name || claim.claimant_name}
-              </p>
-              <p className={styles.text}>
-                <strong>Email:</strong> {claim.contact_email || "N/A"}
-              </p>
-              <p className={styles.text}>
-                <strong>Phone:</strong> {claim.contact_phone || "N/A"}
-              </p>
               <p className={styles.text}>
                 <strong>Contact Shared:</strong> {formatDateTime(claim.contact_shared_at)}
               </p>
@@ -226,30 +213,57 @@ export default function ClaimDetailsPage() {
           )}
 
           <div className={styles.actions}>
-            <Link to="/claims/inbox" className={styles.backBtn}>
-              Back to Claims Inbox
-            </Link>
+            {isClaimant && (
+              <Link to="/claims" className={styles.backBtn}>
+                Back to My Claims
+              </Link>
+            )}
 
-            {claim.status === "pending" && (
+            {isOwner && (
+              <Link to="/claims/inbox" className={styles.backBtn}>
+                Back to Claims Inbox
+              </Link>
+            )}
+
+            {!isClaimant && !isOwner && (
+              <Link to="/claims" className={styles.backBtn}>
+                Back
+              </Link>
+            )}
+
+            {isClaimant && claim.status === "pending" && (
+              <button
+                type="button"
+                className={styles.rejectBtn}
+                onClick={handleWithdraw}
+                disabled={actionInProgress}
+              >
+                Withdraw Claim
+              </button>
+            )}
+
+            {isOwner && claim.status === "pending" && (
               <>
                 <button
                   type="button"
                   className={styles.approveBtn}
-                  onClick={handleApproveClaim}
+                  onClick={handleApprove}
+                  disabled={actionInProgress}
                 >
                   Approve Claim
                 </button>
-
                 <button
                   type="button"
                   className={styles.rejectBtn}
-                  onClick={handleOpenRejectModal}
+                  onClick={() => setShowRejectModal(true)}
+                  disabled={actionInProgress}
                 >
                   Reject Claim
                 </button>
               </>
             )}
           </div>
+
           {showRejectModal && (
             <div className={styles.modalOverlay}>
               <div className={styles.modalBox}>
@@ -257,7 +271,6 @@ export default function ClaimDetailsPage() {
                 <p className={styles.text}>
                   Add feedback explaining why this claim is being rejected.
                 </p>
-
                 <textarea
                   value={rejectFeedback}
                   onChange={(e) => setRejectFeedback(e.target.value)}
@@ -265,7 +278,6 @@ export default function ClaimDetailsPage() {
                   rows={5}
                   className={styles.textarea}
                 />
-
                 <div className={styles.modalActions}>
                   <button
                     type="button"
@@ -277,11 +289,11 @@ export default function ClaimDetailsPage() {
                   >
                     Cancel
                   </button>
-
                   <button
                     type="button"
                     className={styles.rejectBtn}
                     onClick={handleSubmitRejection}
+                    disabled={actionInProgress}
                   >
                     Submit Rejection
                   </button>
