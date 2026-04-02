@@ -131,6 +131,18 @@ async function realSubmitClaim(itemId, data) {
   return await http.post("/claims", { item_id: Number(itemId), ...data }, { token: getToken() });
 }
 
+async function realGetClaimsInbox() {
+  return await http.get("/claims/inbox", { token: getToken() });
+}
+
+async function realApproveClaim(claimId) {
+  return await http.put(`/claims/${claimId}`, { status: "approved" }, { token: getToken() });
+}
+
+async function realRejectClaim(claimId) {
+  return await http.put(`/claims/${claimId}`, { status: "rejected" }, { token: getToken() });
+}
+
 //Public
 
 export async function listMyClaims(userId) {
@@ -153,4 +165,34 @@ export async function submitClaim(itemId, data, userId) {
   return USE_MOCK
     ? mockSubmitClaim(itemId, data, userId)
     : realSubmitClaim(itemId, data);
+}
+
+export async function getClaimsInbox() {
+  if (USE_MOCK) {
+    await delay(200);
+    return [...mockClaims];
+  }
+  return realGetClaimsInbox();
+}
+
+export async function approveClaim(claimId) {
+  if (USE_MOCK) {
+    await delay(200);
+    const idx = mockClaims.findIndex((c) => String(c.id) === String(claimId));
+    if (idx === -1) throw new Error("Claim not found");
+    mockClaims[idx] = { ...mockClaims[idx], status: "approved", updated_at: new Date().toISOString() };
+    return { ...mockClaims[idx] };
+  }
+  return realApproveClaim(claimId);
+}
+
+export async function rejectClaim(claimId) {
+  if (USE_MOCK) {
+    await delay(200);
+    const idx = mockClaims.findIndex((c) => String(c.id) === String(claimId));
+    if (idx === -1) throw new Error("Claim not found");
+    mockClaims[idx] = { ...mockClaims[idx], status: "rejected", updated_at: new Date().toISOString() };
+    return { ...mockClaims[idx] };
+  }
+  return realRejectClaim(claimId);
 }

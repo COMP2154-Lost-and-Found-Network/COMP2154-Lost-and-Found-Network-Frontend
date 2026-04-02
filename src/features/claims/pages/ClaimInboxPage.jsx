@@ -1,77 +1,130 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import PageContainer from "../../../components/ui/PageContainer";
 import ClaimStatusPill from "../components/ClaimStatusPill";
+import * as claimsApi from "../api/claimsApi";
+import styles from "../styles/claimInbox.module.css";
+
+function formatDate(value) {
+  if (!value) return "N/A";
+  return new Date(value).toLocaleDateString();
+}
 
 export default function ClaimInboxPage() {
-  const claims = [
-    {
-      id: 1,
-      item_title: "Black Wallet",
-      claimant_name: "John Doe",
-      submitted_at: "2026-03-20",
-      status: "Pending",
-      verification_details: "Described wallet contents and card holder color.",
-    },
-    {
-      id: 2,
-      item_title: "Silver iPhone",
-      claimant_name: "Sarah Lee",
-      submitted_at: "2026-03-18",
-      status: "Approved",
-      verification_details: "Matched lock screen photo and phone case details.",
-    },
-    {
-      id: 3,
-      item_title: "Blue Backpack",
-      claimant_name: "Michael Chen",
-      submitted_at: "2026-03-16",
-      status: "Rejected",
-      verification_details: "Claim details did not match the item description.",
-    },
-  ];
+  const [claims, setClaims] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [actioningId, setActioningId] = useState(null);
+
+  async function loadClaims() {
+    try {
+      setError("");
+      setIsLoading(true);
+      const data = await claimsApi.getClaimsInbox();
+      setClaims(data ?? []);
+    } catch (e) {
+      setError(e.message || "Failed to load claims inbox");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadClaims();
+  }, []);
+
+  async function handleApprove(claimId) {
+    if (!window.confirm("Approve this claim? The claimant will be notified.")) return;
+    try {
+      setActioningId(claimId);
+      await claimsApi.approveClaim(claimId);
+      await loadClaims();
+    } catch (e) {
+      alert(e.message || "Failed to approve claim");
+    } finally {
+      setActioningId(null);
+    }
+  }
+
+  async function handleReject(claimId) {
+    if (!window.confirm("Reject this claim?")) return;
+    try {
+      setActioningId(claimId);
+      await claimsApi.rejectClaim(claimId);
+      await loadClaims();
+    } catch (e) {
+      alert(e.message || "Failed to reject claim");
+    } finally {
+      setActioningId(null);
+    }
+  }
 
   return (
     <PageContainer>
-      <div className="page-header">
-        <h1>Claims Inbox</h1>
-        <p>Review incoming claims submitted for your found items.</p>
-      </div>
+      <div className={styles.wrapper}>
+        <h1 className={styles.title}>Claims Inbox</h1>
+        <p className={styles.subtitle}>
+          Review incoming claims submitted for items you reported.
+        </p>
 
-      {claims.length === 0 ? (
-        <div className="empty-state">
-          <p>No incoming claims yet.</p>
-        </div>
-      ) : (
-        <div className="claims-list">
+        {isLoading && <p>Loading...</p>}
+        {error && <p className={styles.error}>{error}</p>}
+
+        {!isLoading && !error && claims.length === 0 && (
+          <div className={styles.emptyState}>
+            <p className={styles.emptyTitle}>No incoming claims</p>
+            <p className={styles.emptyText}>
+              When someone submits a claim on one of your items, it will appear here.
+            </p>
+          </div>
+        )}
+
+        <div className={styles.list}>
           {claims.map((claim) => (
-            <div key={claim.id} className="claim-card">
-              <div className="claim-card-header">
+            <div key={claim.id} className={styles.card}>
+              <div className={styles.cardHeader}>
                 <div>
-                  <h2>{claim.item_title}</h2>
-                  <p>
-                    <strong>Claimant:</strong> {claim.claimant_name}
+                  <h2 className={styles.itemTitle}>{claim.item_title}</h2>
+                  <p className={styles.claimant}>
+                    Claimed by {claim.claimant_first_name} {claim.claimant_last_name}
                   </p>
                 </div>
                 <ClaimStatusPill status={claim.status} />
               </div>
 
-              <div className="claim-card-body">
-                <p>
-                  <strong>Submitted:</strong> {claim.submitted_at}
-                </p>
-                <p>
-                  <strong>Verification Details:</strong> {claim.verification_details}
-                </p>
+              <p className={styles.meta}>Submitted: {formatDate(claim.created_at)}</p>
+
+              <div className={styles.verification}>
+                <strong>Verification:</strong> {claim.verification_details}
               </div>
 
-              <div className="claim-card-actions">
-                <button type="button" className="primary-button" disabled>
-                  Review Page Coming Soon
-                </button>
+              <div className={styles.actions}>
+                {claim.status === "pending" && (
+                  <>
+                    <button
+                      className={styles.approveBtn}
+                      onClick={() => handleApprove(claim.id)}
+                      disabled={actioningId === claim.id}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      className={styles.rejectBtn}
+                      onClick={() => handleReject(claim.id)}
+                      disabled={actioningId === claim.id}
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
+                <Link to={`/items/${claim.item_id}`} className={styles.viewBtn}>
+                  View Item
+                </Link>
               </div>
             </div>
           ))}
         </div>
-      )}
+      </div>
     </PageContainer>
   );
 }
