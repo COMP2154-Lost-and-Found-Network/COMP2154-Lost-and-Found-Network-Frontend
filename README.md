@@ -1,16 +1,109 @@
-# React + Vite
+# Lost & Found Network — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A centralized web-based platform for reporting, browsing, and claiming lost and found items across George Brown Polytechnic campuses.
 
-Currently, two official plugins are available:
+Built with React + Vite for COMP 2154 (System Development Project).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Team — Group 84
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **React 19** — UI framework
+- **React Router v7** — client-side routing
+- **Vite** — build tool and dev server
+- **Vitest** — unit testing
+- **CSS Modules** — scoped component styles
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Installation
+
+```bash
+git clone https://github.com/COMP2154-Lost-and-Found-Network/COMP2154-Lost-and-Found-Network-Frontend.git
+cd COMP2154-Lost-and-Found-Network-Frontend
+npm install
+```
+
+### Environment Setup
+
+Copy the example env file:
+
+```bash
+cp .env.example .env
+```
+
+Environment files:
+
+| File | Used by | API URL |
+|---|---|---|
+| `.env.development` | `npm run dev` | `http://localhost:3000/api` |
+| `.env.production` | `npm run build` | Railway production URL |
+
+Key variables:
+
+| Variable | Description |
+|---|---|
+| `VITE_USE_MOCK_API` | `true` for mock data, `false` for real backend |
+| `VITE_API_BASE_URL` | Backend API base URL |
+
+### Running Locally
+
+```bash
+npm run dev
+```
+
+App runs at `http://localhost:5173/COMP2154-Lost-and-Found-Network/`
+
+### Running Tests
+
+```bash
+npm test
+```
+
+### Building for Production
+
+```bash
+npm run build
+npm run preview
+```
+
+## Project Structure
+
+```
+src/
+├── app/                  # App entry, routes, layout, providers
+├── components/ui/        # Shared UI (Navbar, Footer, PageContainer)
+├── context/              # Auth context and provider
+├── services/             # HTTP client, auth storage
+├── features/
+│   ├── auth/             # Login, register pages and API
+│   ├── items/            # Report, browse, dashboard, edit, item details
+│   ├── claims/           # Submit claim, my claims, claim inbox, claim details
+│   ├── admin/            # Admin dashboard, manage data, disputes
+│   └── landing/          # Public landing page
+└── styles/               # Global styles
+```
+
+## Core Workflows
+
+1. **Authentication** — Register, login, logout, JWT-based session with auto-expiry detection
+2. **Item Management** — Report lost/found items with images, browse with filters, edit, soft delete
+3. **Claims & Verification** — Submit claims with evidence, approve/reject with feedback, withdraw, claim inbox for item owners
+4. **Admin & Oversight** — Dashboard with stats, manage categories and locations, manage items
+5. **Dispute Resolution** — Escalate contested claims, admin dispute inbox, side-by-side claim comparison, resolve with notes
+
+## Deployment
+
+The frontend is deployed on **Netlify**. Environment variables are set in the Netlify dashboard.
+
+The backend is deployed on **Railway** at:
+`https://comp2154-lost-and-found-network-backend-production.up.railway.app`
+
+## Related Repositories
+
+- **Backend**: [COMP2154-Lost-and-Found-Network-Backend](https://github.com/COMP2154-Lost-and-Found-Network/COMP2154-Lost-and-Found-Network-Backend)
