@@ -38,7 +38,7 @@ export default function BrowsePage() {
         }
 
         const data = await response.json();
-        const rawItems = Array.isArray(data) ? data : data.items || [];
+        const rawItems = Array.isArray(data) ? data : data.data || data.items || [];
 
         const categoryMap = {
           1: "Electronics",

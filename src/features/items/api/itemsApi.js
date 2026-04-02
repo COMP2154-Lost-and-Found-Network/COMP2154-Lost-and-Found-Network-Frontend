@@ -6,13 +6,17 @@ function mapItem(item) {
 }
 
 async function listItems() {
-  const items = await http.get("/items", { token: getToken() });
-  return (items ?? []).map(mapItem);
+  const res = await http.get("/items", { token: getToken() });
+  const items = Array.isArray(res) ? res : res?.data ?? [];
+  return items.map(mapItem);
 }
 
 async function listMyItems() {
-  const items = await http.get("/items/my-items", { token: getToken() });
-  return (items ?? []).map(mapItem);
+  const user = JSON.parse(localStorage.getItem("authUser"));
+  const userId = user?.id;
+  const res = await http.get(`/items?user_id=${userId}`, { token: getToken() });
+  const items = Array.isArray(res) ? res : res?.data ?? [];
+  return items.map(mapItem);
 }
 
 async function getItemById(id) {
@@ -35,7 +39,7 @@ async function updateItem(id, updatedFields) {
     });
     const uploadData = await uploadRes.json();
     if (!uploadRes.ok) {
-      throw new Error(uploadData.error || "Image upload failed");
+      throw new Error("We couldn't upload your image right now. Please try again or submit without an image.");
     }
     payload.image_url = uploadData.url;
   }
@@ -61,7 +65,7 @@ async function createItem(data) {
     });
     const uploadData = await uploadRes.json();
     if (!uploadRes.ok) {
-      throw new Error(uploadData.error || "Image upload failed");
+      throw new Error("We couldn't upload your image right now. Please try again or submit without an image.");
     }
     image_url = uploadData.url;
   }

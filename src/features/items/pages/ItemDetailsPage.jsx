@@ -1,13 +1,24 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import PageContainer from "../../../components/ui/PageContainer";
+import { useAuth } from "../../../context/useAuth";
 import * as itemsApi from "../api/itemsApi";
 import StatusPill from "../components/StatusPill";
 import styles from "../styles/itemDetails.module.css";
 
+function formatDate(value) {
+  if (!value) return "N/A";
+  return new Date(value).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export default function ItemDetailsPage() {
   const { itemId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [item, setItem] = useState(null);
   const [error, setError] = useState("");
 
@@ -21,13 +32,8 @@ export default function ItemDetailsPage() {
         setError(e.message || "Failed to load item");
       }
     }
-
     loadItem();
   }, [itemId]);
-
-  function handleClaim() {
-    navigate(`/items/${itemId}/claim`);
-  }
 
   if (error) {
     return (
@@ -45,53 +51,97 @@ export default function ItemDetailsPage() {
     );
   }
 
+  const isOwner = item.user_id === user?.id;
+  const typeLabel = item.type
+    ? item.type.charAt(0).toUpperCase() + item.type.slice(1).toLowerCase()
+    : null;
+  const isLost = item.type?.toLowerCase() === "lost";
+
+  const rawUrl = item.imageUrl || item.image_url || null;
+  const imageSrc = rawUrl && rawUrl.startsWith("http")
+    ? rawUrl
+    : rawUrl
+      ? `${import.meta.env.VITE_API_BASE_URL}${rawUrl}`
+      : null;
+
   return (
     <PageContainer>
       <div className={styles.wrapper}>
-        <div className={styles.card}>
+        <Link to="/browse" className={styles.backLink}>&larr; Back to Browse</Link>
+
+        <div
+          className={styles.card}
+          style={{ borderTop: `3px solid ${isLost ? "#dc2626" : "#16a34a"}` }}
+        >
+          {/* Header */}
           <div className={styles.header}>
-            <h1 className={styles.title}>{item.title}</h1>
+            <div>
+              {typeLabel && (
+                <span className={isLost ? styles.typeLost : styles.typeFound}>
+                  {typeLabel}
+                </span>
+              )}
+              <h1 className={styles.title}>{item.title}</h1>
+            </div>
             <StatusPill status={item.status} />
           </div>
 
-          {item.imageUrl ? (
-            <img
-              src={item.imageUrl}
-              alt={item.title}
-              className={styles.image}
-            />
-          ) : (
-            <div className={styles.placeholder}>No Image</div>
-          )}
-
-          <p className={styles.description}>{item.description}</p>
-
-          <div className={styles.details}>
-            <div>
-              <strong>Date:</strong> {item.date}
-            </div>
-            <div>
-              <strong>Location:</strong> {item.location}
-            </div>
-            <div>
-              <strong>Status:</strong> {item.status}
-            </div>
-          </div>
-
-          <div className={styles.actions}>
-            {item.type?.toLowerCase() === "found" && (
-              <button className={styles.claimBtn} onClick={handleClaim}>
-                Claim Item
-              </button>
+          {/* Body — two columns if image, single column if not */}
+          <div className={imageSrc ? styles.body : styles.bodySingle}>
+            {imageSrc && (
+              <div className={styles.imageCol}>
+                <img src={imageSrc} alt={item.title} className={styles.image} />
+              </div>
             )}
 
-            <Link to={`/items/${item.id}/edit`} className={styles.editBtn}>
-              Edit
-            </Link>
+            <div className={styles.infoCol}>
+              <p className={styles.description}>{item.description}</p>
 
-            <Link to="/items" className={styles.backLink}>
-              Back to Dashboard
-            </Link>
+              <div className={styles.metaGrid}>
+                {item.category && (
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Category</span>
+                    <span className={styles.metaValue}>{item.category}</span>
+                  </div>
+                )}
+                <div className={styles.metaItem}>
+                  <span className={styles.metaLabel}>{isLost ? "Date Lost" : "Date Found"}</span>
+                  <span className={styles.metaValue}>{formatDate(item.date)}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaLabel}>Location</span>
+                  <span className={styles.metaValue}>{item.location || "N/A"}</span>
+                </div>
+                {item.location_details && (
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Specific Details</span>
+                    <span className={styles.metaValue}>{item.location_details}</span>
+                  </div>
+                )}
+                <div className={styles.metaItem}>
+                  <span className={styles.metaLabel}>Reported</span>
+                  <span className={styles.metaValue}>{formatDate(item.created_at)}</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className={styles.actions}>
+                {item.type?.toLowerCase() === "found" && !isOwner && (
+                  <button
+                    className={styles.claimBtn}
+                    onClick={() => navigate(`/items/${itemId}/claim`)}
+                  >
+                    Claim This Item
+                  </button>
+                )}
+
+                {isOwner && (
+                  <Link to={`/items/${item.id}/edit`} className={styles.editBtn}>
+                    Edit Item
+                  </Link>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
