@@ -342,43 +342,43 @@ async function realGetRecentActivity() {
 }
 
 async function realListCategories() {
-  return await http.get("/admin/categories");
+  return await http.get("/categories", { token: getToken() });
 }
 
 async function realAddCategory(payload) {
-  return await http.post("/admin/categories", payload);
+  return await http.post("/categories", payload, { token: getToken() });
 }
 
 async function realUpdateCategory(categoryId, payload) {
-  return await http.put(`/admin/categories/${categoryId}`, payload);
+  return await http.put(`/categories/${categoryId}`, payload, { token: getToken() });
 }
 
 async function realDeactivateCategory(categoryId) {
-  return await http.patch(`/admin/categories/${categoryId}/deactivate`);
+  return await http.put(`/categories/${categoryId}`, { is_active: false }, { token: getToken() });
 }
 
 async function realActivateCategory(categoryId) {
-  return await http.patch(`/admin/categories/${categoryId}/activate`);
+  return await http.put(`/categories/${categoryId}`, { is_active: true }, { token: getToken() });
 }
 
 async function realListLocations() {
-  return await http.get("/admin/locations");
+  return await http.get("/locations", { token: getToken() });
 }
 
 async function realAddLocation(payload) {
-  return await http.post("/admin/locations", payload);
+  return await http.post("/locations", payload, { token: getToken() });
 }
 
 async function realUpdateLocation(locationId, payload) {
-  return await http.put(`/admin/locations/${locationId}`, payload);
+  return await http.put(`/locations/${locationId}`, payload, { token: getToken() });
 }
 
 async function realDeactivateLocation(locationId) {
-  return await http.patch(`/admin/locations/${locationId}/deactivate`);
+  return await http.put(`/locations/${locationId}`, { is_active: false }, { token: getToken() });
 }
 
 async function realActivateLocation(locationId) {
-  return await http.patch(`/admin/locations/${locationId}/activate`);
+  return await http.put(`/locations/${locationId}`, { is_active: true }, { token: getToken() });
 }
 
 //Public
