@@ -117,6 +117,9 @@ export default function ClaimInboxPage() {
                     </button>
                   </>
                 )}
+                <Link to={`/claims/${claim.id}`} className={styles.viewBtn}>
+                  Review Details
+                </Link>
                 <Link to={`/items/${claim.item_id}`} className={styles.viewBtn}>
                   View Item
                 </Link>
