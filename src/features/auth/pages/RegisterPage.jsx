@@ -6,7 +6,6 @@ import { register } from "../api/authApi";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -18,7 +17,11 @@ export default function RegisterPage() {
       await register(formData);
       navigate("/login", { replace: true });
     } catch (e) {
-      setError(e?.message || "Registration failed.");
+      if (e.status === 409) {
+        setError("An account with this email already exists. Please sign in instead.");
+      } else {
+        setError(e?.message || "Registration failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -27,20 +30,20 @@ export default function RegisterPage() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        <h1 className={styles.title}>Register</h1>
+        <div className={styles.brandGroup}>
+          <span className={styles.brandName}>Lost &amp; Found Network</span>
+          <span className={styles.brandSub}>George Brown Polytechnic</span>
+        </div>
 
         <section className={styles.card}>
-          <RegisterForm
-            onSubmit={handleRegister}
-            isLoading={isLoading}
-            error={error}
-          />
+          <h1 className={styles.title}>Create an account</h1>
+          <p className={styles.subtitle}>Register to report and claim items across campus.</p>
+
+          <RegisterForm onSubmit={handleRegister} isLoading={isLoading} error={error} />
 
           <div className={styles.authRow}>
             <span className={styles.authRowText}>Already have an account?</span>
-            <Link className={styles.linkButton} to="/login">
-              Sign in
-            </Link>
+            <Link className={styles.linkButton} to="/login">Sign in</Link>
           </div>
         </section>
       </div>

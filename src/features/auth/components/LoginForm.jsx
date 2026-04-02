@@ -36,14 +36,8 @@ export default function LoginForm({ onSubmit, isLoading, error }) {
       {error ? <div className={styles.error}>{error}</div> : null}
 
       <button className={styles.button} type="submit" disabled={isLoading}>
-        {isLoading ? "Logging in..." : "Login"}
+        {isLoading ? "Signing in..." : "Sign In"}
       </button>
-
-      <div className={styles.hint}>
-        Mock users:
-        <div>admin@example.com / admin123</div>
-        <div>user@example.com / user123</div>
-      </div>
     </form>
   );
 }

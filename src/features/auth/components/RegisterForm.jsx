@@ -94,7 +94,7 @@ export default function RegisterForm({ onSubmit, isLoading = false, error = "" }
       {error ? <div className={styles.error}>{error}</div> : null}
 
       <button className={styles.button} type="submit" disabled={isLoading}>
-        {isLoading ? "Registering..." : "Register"}
+        {isLoading ? "Creating account..." : "Create Account"}
       </button>
     </form>
   );

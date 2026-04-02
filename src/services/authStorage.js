@@ -13,13 +13,29 @@ export function clearAuth() {
   localStorage.removeItem(USER_KEY);
 }
 
-//Returns saved authentication token
+//Returns saved authentication token, or null if expired
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      clearAuth();
+      return null;
+    }
+  } catch {
+    // malformed token — clear it
+    clearAuth();
+    return null;
+  }
+
+  return token;
 }
 
-//Returns the saved user object from localStorage
+//Returns the saved user object from localStorage, or null if token is expired
 export function getUser() {
+  if (!getToken()) return null;
   const raw = localStorage.getItem(USER_KEY);
   return raw ? JSON.parse(raw) : null;
 }

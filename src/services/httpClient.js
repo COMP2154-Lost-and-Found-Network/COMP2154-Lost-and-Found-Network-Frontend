@@ -27,7 +27,16 @@ async function request(path, { method = "GET", body, token } = {}) {
   }
 
   if (!res.ok) {
-    const msg = data?.message || `Request failed (${res.status})`;
+    const serverMsg = data?.message || data?.error;
+    const fallbacks = {
+      400: "Invalid request. Please check your input.",
+      401: "Invalid email or password.",
+      403: "You don't have permission to do this.",
+      404: "The requested resource was not found.",
+      409: "This record already exists.",
+      500: "Something went wrong on the server. Please try again.",
+    };
+    const msg = serverMsg || fallbacks[res.status] || `Request failed (${res.status})`;
     const err = new Error(msg);
     err.status = res.status;
     throw err;
