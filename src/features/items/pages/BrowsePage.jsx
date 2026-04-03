@@ -13,7 +13,7 @@ export default function BrowsePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedDateFilter, setSelectedDateFilter] = useState("All Dates");
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState("All");
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState("All Types");
   const [selectedCampusFilter, setSelectedCampusFilter] = useState("All Campuses");
 
   useEffect(() => {
@@ -129,7 +129,7 @@ export default function BrowsePage() {
       (itemDate && selectedDateFilter === "Last Month" && diffDays <= 30);
 
     const matchesStatus =
-      selectedStatusFilter === "All" ||
+      selectedStatusFilter === "All Types" ||
       (item.type || "").toLowerCase() === selectedStatusFilter.toLowerCase();
 
     return (
@@ -143,120 +143,100 @@ export default function BrowsePage() {
 
   return (
     <div className="browse-page">
+      {/* Header with title + view toggle */}
       <div className="browse-header">
-        <h1>Lost & Found Listings</h1>
+        <h1>Lost &amp; Found Listings</h1>
+        <div className="browse-view-toggle">
+          <button
+            className={view === "grid" ? "toggle-active" : ""}
+            onClick={() => setView("grid")}
+          >
+            Grid
+          </button>
+          <button
+            className={view === "list" ? "toggle-active" : ""}
+            onClick={() => setView("list")}
+          >
+            List
+          </button>
+        </div>
       </div>
 
+      {/* Search */}
       <div className="browse-search">
         <input
           type="text"
-          placeholder="Search items..."
+          placeholder="Search by title, description, or location..."
           className="browse-search-input"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
+      {/* Inline filters */}
       <div className="browse-filters">
-        <div className="browse-filter-box">
-          <label>Filter by Category</label>
-          <select
-            className="browse-select"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option>All Categories</option>
-            <option>Electronics</option>
-            <option>Clothing</option>
-            <option>Accessories</option>
-            <option>Books & Notes</option>
-            <option>ID & Cards</option>
-            <option>Sports & Gym</option>
-            <option>Other</option>
-          </select>
-        </div>
+        <select
+          className="browse-select"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option>All Categories</option>
+          <option>Electronics</option>
+          <option>Clothing</option>
+          <option>Accessories</option>
+          <option>Books &amp; Notes</option>
+          <option>ID &amp; Cards</option>
+          <option>Sports &amp; Gym</option>
+          <option>Other</option>
+        </select>
 
-        <div className="browse-filter-box">
-          <label>Filter by Campus</label>
-          <select
-            className="browse-select"
-            value={selectedCampusFilter}
-            onChange={(e) => setSelectedCampusFilter(e.target.value)}
-          >
-            <option>All Campuses</option>
-            <option>Casa Loma</option>
-            <option>St. James</option>
-            <option>Waterfront</option>
-            <option>Unknown Campus</option>
-          </select>
-        </div>
+        <select
+          className="browse-select"
+          value={selectedCampusFilter}
+          onChange={(e) => setSelectedCampusFilter(e.target.value)}
+        >
+          <option>All Campuses</option>
+          <option>Casa Loma</option>
+          <option>St. James</option>
+          <option>Waterfront</option>
+        </select>
 
-        <div className="browse-filter-box">
-          <label>Filter by Date</label>
-          <select
-            className="browse-select"
-            value={selectedDateFilter}
-            onChange={(e) => setSelectedDateFilter(e.target.value)}
-          >
-            <option>All Dates</option>
-            <option>Last 24 Hours</option>
-            <option>Last Week</option>
-            <option>Last Month</option>
-          </select>
-        </div>
+        <select
+          className="browse-select"
+          value={selectedDateFilter}
+          onChange={(e) => setSelectedDateFilter(e.target.value)}
+        >
+          <option>All Dates</option>
+          <option>Last 24 Hours</option>
+          <option>Last Week</option>
+          <option>Last Month</option>
+        </select>
 
-        <div className="browse-filter-box">
-          <label>Filter by Type</label>
-          <select
-            className="browse-select"
-            value={selectedStatusFilter}
-            onChange={(e) => setSelectedStatusFilter(e.target.value)}
-          >
-            <option>All</option>
-            <option>Lost</option>
-            <option>Found</option>
-          </select>
-        </div>
+        <select
+          className="browse-select"
+          value={selectedStatusFilter}
+          onChange={(e) => setSelectedStatusFilter(e.target.value)}
+        >
+          <option>All Types</option>
+          <option>Lost</option>
+          <option>Found</option>
+        </select>
       </div>
 
-      <div className="browse-view-toggle">
-        <button onClick={() => setView("grid")}>Grid View</button>
-        <button onClick={() => setView("list")} className="toggle-button">
-          List View
-        </button>
-      </div>
-
+      {/* Items */}
       <div className={`browse-items ${view === "grid" ? "grid-view" : "list-view"}`}>
         {loading ? (
-          <>
-            <div className="item-card item-card-skeleton">
-              <div className="skeleton skeleton-image"></div>
-              <div className="skeleton skeleton-title"></div>
-              <div className="skeleton skeleton-text"></div>
-              <div className="skeleton skeleton-text short"></div>
-            </div>
-            <div className="item-card item-card-skeleton">
-              <div className="skeleton skeleton-image"></div>
-              <div className="skeleton skeleton-title"></div>
-              <div className="skeleton skeleton-text"></div>
-              <div className="skeleton skeleton-text short"></div>
-            </div>
-            <div className="item-card item-card-skeleton">
-              <div className="skeleton skeleton-image"></div>
-              <div className="skeleton skeleton-title"></div>
-              <div className="skeleton skeleton-text"></div>
-              <div className="skeleton skeleton-text short"></div>
-            </div>
-          </>
+          <p className="browse-loading">Loading items...</p>
         ) : error ? (
-          <div className="item-card browse-message-card">{error}</div>
+          <div className="browse-message-card">{error}</div>
         ) : filteredItems.length === 0 ? (
-          <div className="item-card browse-message-card">No items found.</div>
+          <div className="browse-message-card">No items found.</div>
         ) : (
           filteredItems.map((item) => (
             <ItemCard
               key={item.id}
               item={{ ...item, status: item.status || "active" }}
+              readOnly
             />
           ))
         )}

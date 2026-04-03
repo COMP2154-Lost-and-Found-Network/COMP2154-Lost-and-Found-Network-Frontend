@@ -67,7 +67,7 @@ export default function ItemDetailsPage() {
   return (
     <PageContainer>
       <div className={styles.wrapper}>
-        <Link to="/browse" className={styles.backLink}>&larr; Back to Browse</Link>
+        <button onClick={() => navigate(-1)} className={styles.backLink}>&larr; Back</button>
 
         <div
           className={styles.card}

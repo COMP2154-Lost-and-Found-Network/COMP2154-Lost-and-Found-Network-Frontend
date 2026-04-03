@@ -1,193 +1,218 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import styles from "./Navbar.module.css";
+
+const ChevronDown = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ marginLeft: 4, verticalAlign: "middle" }}
+  >
+    <path d="M3 4.5L6 7.5L9 4.5" />
+  </svg>
+);
+
+function Dropdown({ label, items, isOpen, onToggle, onClose, dropdownRef, active }) {
+  return (
+    <div ref={dropdownRef} className={styles.dropdown}>
+      <span
+        className={`${styles.dropdownTrigger} ${active ? styles.linkActive : ""}`}
+        onClick={onToggle}
+      >
+        {label}
+        <ChevronDown />
+      </span>
+      {isOpen && (
+        <div className={styles.dropdownMenu}>
+          {items.map((item) => (
+            <Link
+              key={item.to}
+              className={styles.dropdownItem}
+              to={item.to}
+              onClick={onClose}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Navbar() {
   const { user, isAuthed, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [claimsOpen, setClaimsOpen] = useState(false);
+  const reportRef = useRef(null);
+  const claimsRef = useRef(null);
 
   const isAdmin = user?.role === "ADMIN";
 
+  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      if (reportRef.current && !reportRef.current.contains(e.target)) {
         setReportOpen(false);
+      }
+      if (claimsRef.current && !claimsRef.current.contains(e.target)) {
+        setClaimsOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+    setReportOpen(false);
+    setClaimsOpen(false);
+  }, [location.pathname]);
+
   async function handleLogout() {
     await logout();
     navigate("/", { replace: true });
   }
 
+  function isActivePath(path) {
+    if (path === "/items") return location.pathname === "/items";
+    return location.pathname === path || location.pathname.startsWith(path + "/");
+  }
+
+  function navLink(to, label) {
+    return (
+      <Link
+        className={`${styles.link} ${isActivePath(to) ? styles.linkActive : ""}`}
+        to={to}
+      >
+        {label}
+      </Link>
+    );
+  }
+
+  const initials =
+    [user?.first_name?.[0], user?.last_name?.[0]]
+      .filter(Boolean)
+      .join("")
+      .toUpperCase() || "?";
+
   return (
-    <nav style={styles.nav}>
-      {/* Left side */}
-      <div style={styles.left}>
-        <strong style={styles.brand}>Lost & Found</strong>
-
-        {/* Logged-in user links */}
-        {isAuthed && (
-          <>
-            <Link style={styles.link} to="/items">
-              Dashboard
-            </Link>
-
-            {/* Report dropdown */}
-            <div ref={dropdownRef} style={styles.dropdown}>
-              <span
-                style={styles.dropdownTrigger}
-                onClick={() => setReportOpen((o) => !o)}
-              >
-                Report ▾
-              </span>
-              {reportOpen && (
-                <div style={styles.dropdownMenu}>
-                  <Link
-                    style={styles.dropdownItem}
-                    to="/items/report-lost"
-                    onClick={() => setReportOpen(false)}
-                  >
-                    Report Lost Item
-                  </Link>
-                  <Link
-                    style={styles.dropdownItem}
-                    to="/items/report-found"
-                    onClick={() => setReportOpen(false)}
-                  >
-                    Report Found Item
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            <Link style={styles.link} to="/browse">
-              Browse Items
-            </Link>
-
-            <Link style={styles.link} to="/claims">
-              My Claims
-            </Link>
-            <Link style={styles.link} to="/claims/inbox">
-              Claims Inbox
-            </Link>
-            <Link style={styles.link} to="/profile">
-              Profile
-            </Link>
-          </>
-        )}
-
-        {/* Admin-only links */}
-        {isAuthed && isAdmin && (
-        <Link style={styles.link} to="/admin">
-          Admin
+    <div className={styles.navWrapper}>
+      <div className={styles.navBar}>
+        <Link to={isAuthed ? "/browse" : "/"} className={styles.brand}>
+          Lost &amp; Found
         </Link>
-        )}
-        {isAuthed && isAdmin && (
-          <Link style={styles.link} to="/admin/manage-data">
-            Manage Data
-          </Link>
-        )}
-      </div>
 
-      {/* Right side */}
-      <div style={styles.right}>
-        {!isAuthed ? (
-          <>
-            <Link style={styles.link} to="/login">
-              Login
-            </Link>
-            <Link style={styles.link} to="/register">
-              Register
-            </Link>
-          </>
-        ) : (
-          <>
-            <span style={styles.userText}>
-              {user?.email} ({user?.role})
-            </span>
-            <button style={styles.logoutBtn} onClick={handleLogout}>
-              Log out
-            </button>
-          </>
-        )}
+        {/* Hamburger — mobile only */}
+        <button
+          className={styles.hamburger}
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label="Toggle menu"
+        >
+          {menuOpen ? (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M18 6L6 18" />
+              <path d="M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M3 12h18" />
+              <path d="M3 6h18" />
+              <path d="M3 18h18" />
+            </svg>
+          )}
+        </button>
+
+        {/* Links — inline on desktop, slide-down on mobile */}
+        <div className={`${styles.links} ${menuOpen ? styles.linksOpen : ""}`}>
+          {isAuthed && (
+            <>
+              {navLink("/items", "Dashboard")}
+              {navLink("/browse", "Browse")}
+
+              <Dropdown
+                label="Report"
+                items={[
+                  { to: "/items/report-lost", label: "Report Lost Item" },
+                  { to: "/items/report-found", label: "Report Found Item" },
+                ]}
+                isOpen={reportOpen}
+                onToggle={() => { setReportOpen((o) => !o); setClaimsOpen(false); }}
+                onClose={() => setReportOpen(false)}
+                dropdownRef={reportRef}
+                active={location.pathname.startsWith("/items/report")}
+              />
+
+              <Dropdown
+                label="Claims"
+                items={[
+                  { to: "/claims", label: "My Claims" },
+                  { to: "/claims/inbox", label: "Claims Inbox" },
+                ]}
+                isOpen={claimsOpen}
+                onToggle={() => { setClaimsOpen((o) => !o); setReportOpen(false); }}
+                onClose={() => setClaimsOpen(false)}
+                dropdownRef={claimsRef}
+                active={location.pathname.startsWith("/claims")}
+              />
+
+              {isAdmin && navLink("/admin", "Admin")}
+            </>
+          )}
+
+          {/* Mobile-only user section */}
+          <div className={styles.rightMobile}>
+            {!isAuthed ? (
+              <>
+                <Link className={styles.link} to="/login">Sign In</Link>
+                <Link className={styles.registerBtn} to="/register">Register</Link>
+              </>
+            ) : (
+              <>
+                <Link to="/profile" className={styles.userArea}>
+                  <span className={styles.avatar}>{initials}</span>
+                  <span className={styles.userName}>{user?.first_name || "Profile"}</span>
+                </Link>
+                <button className={styles.logoutBtn} onClick={handleLogout}>
+                  Log out
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop-only right section */}
+        <div className={styles.right}>
+          {!isAuthed ? (
+            <>
+              <Link className={styles.link} to="/login">Sign In</Link>
+              <Link className={styles.registerBtn} to="/register">Register</Link>
+            </>
+          ) : (
+            <>
+              <Link to="/profile" className={styles.userArea}>
+                <span className={styles.avatar}>{initials}</span>
+                <span className={styles.userName}>{user?.first_name || "Profile"}</span>
+              </Link>
+              <button className={styles.logoutBtn} onClick={handleLogout}>
+                Log out
+              </button>
+            </>
+          )}
+        </div>
       </div>
-    </nav>
+    </div>
   );
 }
-
-const styles = {
-  nav: {
-    background: "#2563EB",
-    color: "white",
-    padding: "14px 24px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  left: {
-    display: "flex",
-    gap: 18,
-    alignItems: "center",
-  },
-  right: {
-    display: "flex",
-    gap: 14,
-    alignItems: "center",
-  },
-  brand: {
-    fontSize: 16,
-    letterSpacing: 0.3,
-  },
-  link: {
-    color: "white",
-    textDecoration: "none",
-    fontWeight: 500,
-  },
-  dropdown: {
-    position: "relative",
-  },
-  dropdownTrigger: {
-    color: "white",
-    fontWeight: 500,
-    cursor: "pointer",
-    userSelect: "none",
-  },
-  dropdownMenu: {
-    position: "absolute",
-    top: "calc(100% + 8px)",
-    left: 0,
-    background: "white",
-    borderRadius: 8,
-    boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-    minWidth: 180,
-    zIndex: 100,
-    overflow: "hidden",
-  },
-  dropdownItem: {
-    display: "block",
-    padding: "10px 16px",
-    color: "#111827",
-    textDecoration: "none",
-    fontWeight: 500,
-    fontSize: 14,
-  },
-  userText: {
-    fontSize: 14,
-    opacity: 0.95,
-  },
-  logoutBtn: {
-    background: "white",
-    color: "#2563EB",
-    border: "none",
-    padding: "6px 12px",
-    borderRadius: 4,
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-};
