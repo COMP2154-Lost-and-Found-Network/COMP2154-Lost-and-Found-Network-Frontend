@@ -58,7 +58,7 @@ export default function Navbar() {
   const reportRef = useRef(null);
   const claimsRef = useRef(null);
 
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role === "admin";
 
   // Close dropdowns on outside click
   useEffect(() => {
