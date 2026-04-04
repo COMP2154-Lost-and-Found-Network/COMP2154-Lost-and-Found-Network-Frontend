@@ -12,7 +12,7 @@ export function RequireAdmin({ children }) {
   const { isAuthed, user } = useAuth();
 
   if (!isAuthed) return <Navigate to="/login" replace />;
-  if (user?.role !== "ADMIN") return <Navigate to="/" replace />;
+  if (user?.role !== "admin") return <Navigate to="/" replace />;
 
   return children;
 }
