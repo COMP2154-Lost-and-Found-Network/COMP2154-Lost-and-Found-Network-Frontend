@@ -46,17 +46,9 @@ export default function ClaimInboxPage() {
     }
   }
 
-  async function handleReject(claimId) {
-    if (!window.confirm("Reject this claim?")) return;
-    try {
-      setActioningId(claimId);
-      await claimsApi.rejectClaim(claimId);
-      await loadClaims();
-    } catch (e) {
-      alert(e.message || "Failed to reject claim");
-    } finally {
-      setActioningId(null);
-    }
+  function handleReject(claimId) {
+    // Redirect to detailed claim page where rejection modal exists
+    window.location.href = `/claims/${claimId}`;
   }
 
   return (

@@ -102,9 +102,11 @@ export default function ClaimDetailsPage() {
   }
 
   async function handleSubmitRejection() {
+    if (!rejectFeedback.trim()) return;
+    if (!window.confirm("Reject this claim and send this feedback to the claimant?")) return;
     try {
       setActionInProgress(true);
-      await claimsApi.rejectClaim(claimId);
+      await claimsApi.rejectClaim(claimId, rejectFeedback.trim());
       setShowRejectModal(false);
       setRejectFeedback("");
       await loadClaim();
@@ -230,6 +232,14 @@ export default function ClaimDetailsPage() {
           {claim.status === "approved" && (
             <div className={styles.feedbackBox}>
               <h2 className={styles.sectionTitle}>Contact Information</h2>
+              {(claim.claimant_first_name || claim.claimant_last_name) && (
+                <p className={styles.text}>
+                  <strong>Name:</strong>{" "}
+                  {[claim.claimant_first_name, claim.claimant_last_name]
+                    .filter(Boolean)
+                    .join(" ")}
+                </p>
+              )}
               {claim.claimant_email && (
                 <p className={styles.text}>
                   <strong>Email:</strong> {claim.claimant_email}
@@ -352,7 +362,7 @@ export default function ClaimDetailsPage() {
                     type="button"
                     className={styles.rejectBtn}
                     onClick={handleSubmitRejection}
-                    disabled={actionInProgress}
+                    disabled={actionInProgress || !rejectFeedback.trim()}
                   >
                     Submit Rejection
                   </button>

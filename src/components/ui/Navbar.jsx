@@ -58,7 +58,7 @@ export default function Navbar() {
   const reportRef = useRef(null);
   const claimsRef = useRef(null);
 
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role?.toLowerCase() === "admin";
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -168,7 +168,7 @@ export default function Navbar() {
                 active={location.pathname.startsWith("/claims")}
               />
 
-              {isAdmin && navLink("/admin", "Admin")}
+              {isAdmin && navLink("/admin/items", "Admin Items")}
             </>
           )}
 
