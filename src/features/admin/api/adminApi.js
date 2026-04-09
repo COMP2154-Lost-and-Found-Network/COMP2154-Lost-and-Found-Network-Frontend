@@ -326,15 +326,15 @@ async function mockResolveDispute(disputeId, notes) {
 //Real
 
 async function realListDisputes() {
-  return await http.get("/admin/disputes");
+  return await http.get("/claims/escalated", { token: getToken() });
 }
 
-async function realResolveDispute(disputeId, notes) {
-  return await http.put(`/admin/disputes/${disputeId}`, { status: "resolved", resolution_notes: notes });
+async function realResolveDispute(approvedClaimId, feedback) {
+  return await http.post("/claims/resolve", { approved_claim_id: approvedClaimId, reporter_feedback: feedback }, { token: getToken() });
 }
 
 async function realGetDashboardMetrics() {
-  return await http.get("/admin/dashboard");
+  return await http.get("/admin/stats", { token: getToken() });
 }
 
 async function realGetRecentActivity() {
@@ -454,7 +454,7 @@ export async function getDisputeById(disputeId) {
     if (!dispute) throw new Error("Dispute not found");
     return { ...dispute };
   }
-  return http.get(`/admin/disputes/${disputeId}`);
+  return http.get(`/claims/${disputeId}`, { token: getToken() });
 }
 
 export async function getClaimsForItem(itemId) {
@@ -480,7 +480,7 @@ export async function getClaimsForItem(itemId) {
       },
     ];
   }
-  return http.get(`/admin/items/${itemId}/claims`);
+  return http.get(`/claims?item_id=${itemId}`, { token: getToken() });
 }
 
 export async function resolveDispute(disputeId, notes) {

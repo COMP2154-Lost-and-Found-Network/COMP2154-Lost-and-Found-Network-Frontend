@@ -4,27 +4,28 @@ import PageContainer from "../../../components/ui/PageContainer";
 import * as adminApi from "../api/adminApi";
 import styles from "../styles/adminDashboardPage.module.css";
 
-function formatDateTime(value) {
-  if (!value) return "N/A";
-  return new Date(value).toLocaleString();
-}
-
 export default function AdminDashboardPage() {
   const [metrics, setMetrics] = useState(null);
-  const [activity, setActivity] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadDashboard() {
       try {
         setError("");
-        const [metricsData, activityData] = await Promise.all([
-          adminApi.getDashboardMetrics(),
-          adminApi.getRecentActivity(),
-        ]);
+        const data = await adminApi.getDashboardMetrics();
 
-        setMetrics(metricsData);
-        setActivity(activityData);
+        // Map backend shape { itemStats: {...}, claimStats: {...} }
+        // to frontend display values
+        setMetrics({
+          totalItems: data?.itemStats?.Total_Items ?? 0,
+          activeItems: data?.itemStats?.Active_Items ?? 0,
+          claimedItems: data?.itemStats?.Claimed_Items ?? 0,
+          totalClaims: data?.claimStats?.Total_Claims ?? 0,
+          pendingClaims: data?.claimStats?.Pending_Claims ?? 0,
+          approvedClaims: data?.claimStats?.Approved_Claims ?? 0,
+          rejectedClaims: data?.claimStats?.Rejected_Claims ?? 0,
+          escalatedClaims: data?.claimStats?.Escalated_Claims ?? 0,
+        });
       } catch (e) {
         setError(e.message || "Failed to load dashboard");
       }
@@ -46,7 +47,7 @@ export default function AdminDashboardPage() {
               Disputes
             </Link>
             <Link to="/admin/manage-data" className={styles.manageBtn}>
-              Manage Categories & Locations
+              Manage Categories &amp; Locations
             </Link>
           </div>
         </div>
@@ -62,38 +63,38 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className={styles.metricCard}>
-            <p className={styles.metricLabel}>Active Claims</p>
+            <p className={styles.metricLabel}>Active Items</p>
             <p className={styles.metricValue}>
-              {metrics ? metrics.activeClaims : "..."}
+              {metrics ? metrics.activeItems : "..."}
             </p>
           </div>
 
           <div className={styles.metricCard}>
-            <p className={styles.metricLabel}>Pending Disputes</p>
+            <p className={styles.metricLabel}>Claimed Items</p>
             <p className={styles.metricValue}>
-              {metrics ? (metrics.pendingDisputes ?? 0) : "..."}
+              {metrics ? metrics.claimedItems : "..."}
             </p>
           </div>
-        </div>
 
-        <div className={styles.activityCard}>
-          <h2 className={styles.sectionTitle}>Recent Activity</h2>
+          <div className={styles.metricCard}>
+            <p className={styles.metricLabel}>Total Claims</p>
+            <p className={styles.metricValue}>
+              {metrics ? metrics.totalClaims : "..."}
+            </p>
+          </div>
 
-          <div className={styles.activityList}>
-            {activity.map((item) => (
-              <div key={item.id} className={styles.activityItem}>
-                <div>
-                  <p className={styles.activityTitle}>{item.title}</p>
-                  <p className={styles.activityMeta}>
-                    {item.type.toUpperCase()} item • {item.location_display_name}
-                  </p>
-                </div>
+          <div className={styles.metricCard}>
+            <p className={styles.metricLabel}>Pending Claims</p>
+            <p className={styles.metricValue}>
+              {metrics ? metrics.pendingClaims : "..."}
+            </p>
+          </div>
 
-                <p className={styles.activityDate}>
-                  {formatDateTime(item.created_at)}
-                </p>
-              </div>
-            ))}
+          <div className={styles.metricCard}>
+            <p className={styles.metricLabel}>Escalated</p>
+            <p className={styles.metricValue}>
+              {metrics ? metrics.escalatedClaims : "..."}
+            </p>
           </div>
         </div>
       </div>

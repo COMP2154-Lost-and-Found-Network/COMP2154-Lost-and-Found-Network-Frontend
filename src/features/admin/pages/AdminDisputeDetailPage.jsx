@@ -25,6 +25,7 @@ export default function AdminDisputeDetailPage() {
   const [error, setError] = useState("");
 
   const [showResolveModal, setShowResolveModal] = useState(false);
+  const [selectedClaimId, setSelectedClaimId] = useState("");
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [actionInProgress, setActionInProgress] = useState(false);
 
@@ -55,11 +56,12 @@ export default function AdminDisputeDetailPage() {
   }, [disputeId]);
 
   async function handleResolve() {
-    if (!resolutionNotes.trim()) return;
+    if (!selectedClaimId) return;
     try {
       setActionInProgress(true);
-      await adminApi.resolveDispute(disputeId, resolutionNotes.trim());
+      await adminApi.resolveDispute(selectedClaimId, resolutionNotes.trim());
       setShowResolveModal(false);
+      setSelectedClaimId("");
       setResolutionNotes("");
       await loadData();
     } catch (e) {
@@ -259,21 +261,49 @@ export default function AdminDisputeDetailPage() {
             <div className={styles.modalBox}>
               <h2 style={{ marginTop: 0 }}>Resolve Dispute</h2>
               <p style={{ color: "#6b7280", fontSize: 14 }}>
-                Describe how the dispute was resolved — which claim is valid, how
-                ownership was verified, and the final outcome.
+                Select the claim to approve. All other claims on this item will be automatically rejected.
               </p>
+
+              <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                Approve Claim
+              </label>
+              <select
+                value={selectedClaimId}
+                onChange={(e) => setSelectedClaimId(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid #d1d5db",
+                  fontSize: 14,
+                  marginBottom: 16,
+                  boxSizing: "border-box",
+                }}
+              >
+                <option value="">Select a claim to approve...</option>
+                {claims.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    Claim #{c.id} — {c.claimant_name || c.claimant_first_name || `Claimant #${c.claimant_id}`}
+                  </option>
+                ))}
+              </select>
+
+              <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                Feedback (optional)
+              </label>
               <textarea
                 className={styles.textarea}
                 value={resolutionNotes}
                 onChange={(e) => setResolutionNotes(e.target.value)}
-                placeholder="e.g. Verified ownership through student ID. Approved claim #10 for Jane Smith..."
-                rows={5}
+                placeholder="e.g. Verified ownership through student ID..."
+                rows={4}
               />
               <div className={styles.modalActions}>
                 <button
                   className={styles.secondaryBtn}
                   onClick={() => {
                     setShowResolveModal(false);
+                    setSelectedClaimId("");
                     setResolutionNotes("");
                   }}
                 >
@@ -282,9 +312,9 @@ export default function AdminDisputeDetailPage() {
                 <button
                   className={styles.resolveBtn}
                   onClick={handleResolve}
-                  disabled={actionInProgress || !resolutionNotes.trim()}
+                  disabled={actionInProgress || !selectedClaimId}
                 >
-                  Submit Resolution
+                  Approve &amp; Resolve
                 </button>
               </div>
             </div>
