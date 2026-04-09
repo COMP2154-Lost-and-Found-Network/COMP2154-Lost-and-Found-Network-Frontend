@@ -6,6 +6,12 @@ Built with React + Vite for COMP 2154 (System Development Project).
 
 ## Team — Group 84
 
+- Akinwunmi Eludoyin
+- Blossom Babalola
+- Derek Page
+- Seyma Sibel Ekinci
+- Sofia Janik
+
 ## Tech Stack
 
 - **React 19** — UI framework
