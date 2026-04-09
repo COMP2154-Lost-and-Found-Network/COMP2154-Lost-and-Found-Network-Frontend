@@ -61,7 +61,7 @@ export default function ItemCard({ item, onSoftDelete, readOnly = false }) {
           View Details
         </Link>
 
-        {!readOnly && (
+        {!readOnly && item.status?.toLowerCase() === "active" && (
           <div className={styles.iconActions}>
             <Link to={`/items/${item.id}/edit`} className={styles.iconBtn} title="Edit">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

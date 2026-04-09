@@ -27,6 +27,8 @@ export default function ClaimDetailsPage() {
   const [item, setItem] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approveError, setApproveError] = useState("");
   const [actionInProgress, setActionInProgress] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectFeedback, setRejectFeedback] = useState("");
@@ -74,13 +76,14 @@ export default function ClaimDetailsPage() {
   }
 
   async function handleApprove() {
-    if (!window.confirm("Approve this claim? The claimant will be notified.")) return;
     try {
       setActionInProgress(true);
+      setApproveError("");
       await claimsApi.approveClaim(claimId);
+      setShowApproveModal(false);
       await loadClaim();
     } catch (e) {
-      alert(e.message || "Failed to approve claim");
+      setApproveError(e.message || "Failed to approve claim");
     } finally {
       setActionInProgress(false);
     }
@@ -288,7 +291,7 @@ export default function ClaimDetailsPage() {
                 <button
                   type="button"
                   className={styles.approveBtn}
-                  onClick={handleApprove}
+                  onClick={() => setShowApproveModal(true)}
                   disabled={actionInProgress}
                 >
                   Approve Claim
@@ -365,6 +368,39 @@ export default function ClaimDetailsPage() {
                     disabled={actionInProgress || !rejectFeedback.trim()}
                   >
                     Submit Rejection
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showApproveModal && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modalBox}>
+                <h2 style={{ marginTop: 0 }}>Approve Claim</h2>
+                <p className={styles.text}>
+                  Are you sure you want to approve this claim? The claimant will be notified and your contact details will be shared with them.
+                </p>
+                {approveError && (
+                  <p style={{ color: "#991b1b", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "10px 14px", fontSize: 14 }}>
+                    {approveError}
+                  </p>
+                )}
+                <div className={styles.modalActions}>
+                  <button
+                    type="button"
+                    className={styles.backBtn}
+                    onClick={() => { setShowApproveModal(false); setApproveError(""); }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.approveBtn}
+                    onClick={handleApprove}
+                    disabled={actionInProgress}
+                  >
+                    {actionInProgress ? "Approving..." : "Yes, Approve"}
                   </button>
                 </div>
               </div>

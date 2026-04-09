@@ -7,7 +7,11 @@ import styles from "../styles/claimInbox.module.css";
 
 function formatDate(value) {
   if (!value) return "N/A";
-  return new Date(value).toLocaleDateString();
+  return new Date(value).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 export default function ClaimInboxPage() {
@@ -15,6 +19,8 @@ export default function ClaimInboxPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [actioningId, setActioningId] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null); // { type: "approve"|"reject", claimId, claimantName }
+  const [actionError, setActionError] = useState("");
 
   async function loadClaims() {
     try {
@@ -33,22 +39,22 @@ export default function ClaimInboxPage() {
     loadClaims();
   }, []);
 
-  async function handleApprove(claimId) {
-    if (!window.confirm("Approve this claim? The claimant will be notified.")) return;
+  async function handleConfirmAction() {
+    if (!confirmModal) return;
+    const { type, claimId } = confirmModal;
     try {
       setActioningId(claimId);
-      await claimsApi.approveClaim(claimId);
+      setActionError("");
+      if (type === "approve") {
+        await claimsApi.approveClaim(claimId);
+      }
+      setConfirmModal(null);
       await loadClaims();
     } catch (e) {
-      alert(e.message || "Failed to approve claim");
+      setActionError(e.message || `Failed to ${type} claim`);
     } finally {
       setActioningId(null);
     }
-  }
-
-  function handleReject(claimId) {
-    // Redirect to detailed claim page where rejection modal exists
-    window.location.href = `/claims/${claimId}`;
   }
 
   return (
@@ -95,17 +101,14 @@ export default function ClaimInboxPage() {
                   <>
                     <button
                       className={styles.approveBtn}
-                      onClick={() => handleApprove(claim.id)}
+                      onClick={() => setConfirmModal({
+                        type: "approve",
+                        claimId: claim.id,
+                        claimantName: `${claim.claimant_first_name || ""} ${claim.claimant_last_name || ""}`.trim(),
+                      })}
                       disabled={actioningId === claim.id}
                     >
                       Approve
-                    </button>
-                    <button
-                      className={styles.rejectBtn}
-                      onClick={() => handleReject(claim.id)}
-                      disabled={actioningId === claim.id}
-                    >
-                      Reject
                     </button>
                   </>
                 )}
@@ -119,6 +122,40 @@ export default function ClaimInboxPage() {
             </div>
           ))}
         </div>
+
+        {/* Confirmation modal */}
+        {confirmModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalBox}>
+              <h2 className={styles.modalTitle}>
+                {confirmModal.type === "approve" ? "Approve Claim" : "Reject Claim"}
+              </h2>
+              <p className={styles.modalText}>
+                {confirmModal.type === "approve"
+                  ? `Are you sure you want to approve this claim${confirmModal.claimantName ? ` from ${confirmModal.claimantName}` : ""}? The claimant will be notified and your contact details will be shared.`
+                  : `Are you sure you want to reject this claim${confirmModal.claimantName ? ` from ${confirmModal.claimantName}` : ""}?`}
+              </p>
+
+              {actionError && <p className={styles.modalError}>{actionError}</p>}
+
+              <div className={styles.modalActions}>
+                <button
+                  className={styles.modalCancel}
+                  onClick={() => { setConfirmModal(null); setActionError(""); }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={confirmModal.type === "approve" ? styles.approveBtn : styles.rejectBtn}
+                  onClick={handleConfirmAction}
+                  disabled={actioningId}
+                >
+                  {actioningId ? "Processing..." : confirmModal.type === "approve" ? "Yes, Approve" : "Yes, Reject"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </PageContainer>
   );

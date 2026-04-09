@@ -135,7 +135,7 @@ export default function ItemDetailsPage() {
                   </button>
                 )}
 
-                {isOwner && (
+                {isOwner && (item.status?.toLowerCase() === "active" || user?.role?.toLowerCase() === "admin") && (
                   <Link to={`/items/${item.id}/edit`} className={styles.editBtn}>
                     Edit Item
                   </Link>
