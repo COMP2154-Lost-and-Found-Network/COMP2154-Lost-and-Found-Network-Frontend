@@ -1,16 +1,34 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import http from "../../../services/httpClient";
 import { getToken } from "../../../services/authStorage";
+import styles from "../styles/adminItemsPage.module.css";
 
 function formatDate(dateValue) {
   if (!dateValue) return "N/A";
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return "N/A";
-  return date.toLocaleDateString("en-CA", {
+  return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
+}
+
+function typeBadge(type) {
+  const t = (type || "").toLowerCase();
+  return `${styles.badge} ${t === "lost" ? styles.badgeLost : styles.badgeFound}`;
+}
+
+function statusBadge(status) {
+  const s = (status || "").toLowerCase();
+  const map = {
+    active: styles.badgeActive,
+    claimed: styles.badgeClaimed,
+    archived: styles.badgeArchived,
+    escalated: styles.badgeEscalated,
+  };
+  return `${styles.badge} ${map[s] || ""}`;
 }
 
 export default function AdminItemsPage() {
@@ -33,7 +51,6 @@ export default function AdminItemsPage() {
     async function fetchData() {
       setLoading(true);
       setError("");
-
       try {
         const [itemsData, categoriesData, locationsData] = await Promise.all([
           http.get("/admin/items", { token: getToken() }),
@@ -42,89 +59,46 @@ export default function AdminItemsPage() {
         ]);
 
         setItems(
-          Array.isArray(itemsData)
-            ? itemsData
-            : Array.isArray(itemsData?.data)
-              ? itemsData.data
-              : Array.isArray(itemsData?.items)
-                ? itemsData.items
-                : []
-        );
-
-        setCategories(
-          Array.isArray(categoriesData)
-            ? categoriesData
-            : Array.isArray(categoriesData?.categories)
-              ? categoriesData.categories
+          Array.isArray(itemsData) ? itemsData
+            : Array.isArray(itemsData?.data) ? itemsData.data
               : []
         );
-
-        setLocations(
-          Array.isArray(locationsData)
-            ? locationsData
-            : Array.isArray(locationsData?.locations)
-              ? locationsData.locations
-              : Array.isArray(locationsData?.data)
-                ? locationsData.data
-                : []
-        );
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+        setLocations(Array.isArray(locationsData) ? locationsData : locationsData?.data || []);
       } catch (err) {
-        setError(err.message || "Failed to load admin items.");
+        setError(err.message || "Failed to load items.");
       } finally {
         setLoading(false);
       }
     }
-
     fetchData();
   }, []);
 
   const categoryMap = useMemo(() => {
-    return categories.reduce((acc, category) => {
-      acc[category.id] = category.name;
-      return acc;
-    }, {});
+    return categories.reduce((acc, c) => { acc[c.id] = c.name; return acc; }, {});
   }, [categories]);
 
   const normalizedItems = useMemo(() => {
     return items.map((item) => ({
       ...item,
-      category_name:
-        item.category_name ||
-        item.category ||
-        categoryMap[item.category_id] ||
-        "Uncategorized",
-      display_type: item.type ? item.type.toLowerCase() : "unknown",
-      display_status: item.status ? item.status.toLowerCase() : "unknown",
-      display_location:
-        item.location || item.location_details || item.display_name || "N/A",
+      category_name: item.category_name || item.category || categoryMap[item.category_id] || "Uncategorized",
+      display_type: (item.type || "unknown").toLowerCase(),
+      display_status: (item.status || "unknown").toLowerCase(),
+      display_location: item.location || item.location_details || item.display_name || "N/A",
     }));
   }, [items, categoryMap]);
 
   const filteredItems = useMemo(() => {
-    const searchValue = search.trim().toLowerCase();
-
+    const q = search.trim().toLowerCase();
     return normalizedItems.filter((item) => {
-      const matchesSearch =
-        !searchValue ||
-        (item.title || "").toLowerCase().includes(searchValue) ||
-        (item.description || "").toLowerCase().includes(searchValue) ||
-        (item.display_location || "").toLowerCase().includes(searchValue);
-
-      const matchesStatus =
-        statusFilter === "all" || item.display_status === statusFilter;
-
-      const matchesType =
-        typeFilter === "all" || item.display_type === typeFilter;
-
-      const matchesCategory =
-        categoryFilter === "all" || item.category_name === categoryFilter;
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesType &&
-        matchesCategory
-      );
+      const matchesSearch = !q
+        || (item.title || "").toLowerCase().includes(q)
+        || (item.description || "").toLowerCase().includes(q)
+        || (item.display_location || "").toLowerCase().includes(q);
+      const matchesStatus = statusFilter === "all" || item.display_status === statusFilter;
+      const matchesType = typeFilter === "all" || item.display_type === typeFilter;
+      const matchesCategory = categoryFilter === "all" || item.category_name === categoryFilter;
+      return matchesSearch && matchesStatus && matchesType && matchesCategory;
     });
   }, [normalizedItems, search, statusFilter, typeFilter, categoryFilter]);
 
@@ -134,31 +108,22 @@ export default function AdminItemsPage() {
       category_id: item.category_id || "",
       location_id: item.location_id || "",
       type: item.display_type === "unknown" ? "lost" : item.display_type,
-      status:
-        item.display_status === "unknown" ? "active" : item.display_status,
-      location_details: item.location_details || item.display_location || "",
+      status: item.display_status === "unknown" ? "active" : item.display_status,
+      location_details: item.location_details || "",
     });
     setShowEditModal(true);
   }
 
-  function handleCloseEdit() {
-    setShowEditModal(false);
-    setSelectedItem(null);
-  }
-
   async function handleSaveEdit() {
     if (!selectedItem) return;
-
     setIsSaving(true);
     try {
-      const updated = await http.put(
+      await http.put(
         `/admin/item/${selectedItem.id}`,
         {
           title: selectedItem.title,
           description: selectedItem.description,
-          date: selectedItem.date
-            ? String(selectedItem.date).slice(0, 10)
-            : null,
+          date: selectedItem.date ? String(selectedItem.date).slice(0, 10) : null,
           category_id: Number(selectedItem.category_id) || null,
           location_id: Number(selectedItem.location_id) || null,
           type: selectedItem.type,
@@ -167,38 +132,11 @@ export default function AdminItemsPage() {
         },
         { token: getToken() }
       );
-
-      const selectedCategory = categories.find(
-        (category) => Number(category.id) === Number(selectedItem.category_id)
-      );
-      const selectedLocation = locations.find(
-        (location) => Number(location.id) === Number(selectedItem.location_id)
-      );
-
-      const mergedUpdatedItem = {
-        ...updated,
-        ...selectedItem,
-        category_id: Number(selectedItem.category_id) || null,
-        location_id: Number(selectedItem.location_id) || null,
-        category:
-          selectedCategory?.name ||
-          updated?.category ||
-          selectedItem.category_name ||
-          "Uncategorized",
-        location:
-          selectedLocation?.display_name ||
-          selectedLocation?.name ||
-          updated?.location ||
-          selectedItem.display_location ||
-          "N/A",
-      };
-
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === selectedItem.id ? { ...item, ...mergedUpdatedItem } : item
-        )
-      );
-      handleCloseEdit();
+      // Refresh list
+      const refreshed = await http.get("/admin/items", { token: getToken() });
+      setItems(Array.isArray(refreshed) ? refreshed : refreshed?.data || []);
+      setShowEditModal(false);
+      setSelectedItem(null);
     } catch (err) {
       alert(err.message || "Failed to update item.");
     } finally {
@@ -207,12 +145,7 @@ export default function AdminItemsPage() {
   }
 
   async function handleDelete(itemId) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this item?"
-    );
-
-    if (!confirmed) return;
-
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
     try {
       await http.delete(`/admin/item/${itemId}`, { token: getToken() });
       setItems((prev) => prev.filter((item) => item.id !== itemId));
@@ -222,79 +155,55 @@ export default function AdminItemsPage() {
   }
 
   if (loading) {
-    return <div style={{ padding: "20px" }}>Loading admin items...</div>;
+    return <div className={styles.page}><p>Loading items...</p></div>;
   }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Admin: Manage Items</h1>
-      <p style={{ marginTop: "4px", color: "#4b5563" }}>
-        Review, edit, and remove item listings.
-      </p>
-
-      {error && (
-        <div
-          style={{
-            marginTop: "16px",
-            marginBottom: "16px",
-            padding: "12px 14px",
-            borderRadius: "10px",
-            background: "#fee2e2",
-            color: "#991b1b",
-          }}
-        >
-          {error}
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div>
+          <h1>Manage Items</h1>
+          <p className={styles.subtitle}>Review, edit, and remove item listings.</p>
         </div>
-      )}
+      </div>
 
-      <div
-        style={{
-          marginBottom: "20px",
-          display: "flex",
-          gap: "10px",
-          flexWrap: "wrap",
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Search by title, description, or location"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {error && <div className={styles.error}>{error}</div>}
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
+      <input
+        type="text"
+        placeholder="Search by title, description, or location..."
+        className={styles.searchInput}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      <div className={styles.filters}>
+        <select className={styles.select} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="all">All Status</option>
           <option value="active">Active</option>
           <option value="claimed">Claimed</option>
           <option value="archived">Archived</option>
         </select>
 
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-        >
+        <select className={styles.select} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
           <option value="all">All Types</option>
           <option value="lost">Lost</option>
           <option value="found">Found</option>
         </select>
 
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
+        <select className={styles.select} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
           <option value="all">All Categories</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.name}>
-              {category.name}
-            </option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.name}>{c.name}</option>
           ))}
         </select>
       </div>
 
-      <table border="1" cellPadding="10" style={{ width: "100%" }}>
+      <p className={styles.count}>
+        Showing {filteredItems.length} of {normalizedItems.length} items
+      </p>
+
+      <table className={styles.table}>
         <thead>
           <tr>
             <th>Title</th>
@@ -306,31 +215,44 @@ export default function AdminItemsPage() {
             <th>Actions</th>
           </tr>
         </thead>
-
         <tbody>
           {filteredItems.length === 0 ? (
             <tr>
-              <td colSpan="7" style={{ textAlign: "center" }}>
-                No items found.
-              </td>
+              <td colSpan="7" className={styles.emptyRow}>No items found.</td>
             </tr>
           ) : (
             filteredItems.map((item) => (
               <tr key={item.id}>
-                <td>{item.title || "Untitled"}</td>
-                <td>{item.category_name}</td>
-                <td>{item.display_type}</td>
-                <td>{item.display_status}</td>
-                <td>{formatDate(item.date)}</td>
-                <td>{item.display_location}</td>
-                <td>
-                  <button onClick={() => handleOpenEdit(item)}>Edit</button>
-                  <button
-                    style={{ marginLeft: "10px" }}
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    Delete
-                  </button>
+                <td data-label="Title">
+                  <Link to={`/items/${item.id}`} className={styles.itemTitle}>{item.title || "Untitled"}</Link>
+                </td>
+                <td data-label="Category">{item.category_name}</td>
+                <td data-label="Type">
+                  <span className={typeBadge(item.display_type)}>{item.display_type}</span>
+                </td>
+                <td data-label="Status">
+                  <span className={statusBadge(item.display_status)}>{item.display_status}</span>
+                </td>
+                <td data-label="Date">{formatDate(item.date)}</td>
+                <td data-label="Location">{item.display_location}</td>
+                <td data-label="Actions">
+                  <div className={styles.actions}>
+                    <button className={styles.editBtn} onClick={() => handleOpenEdit(item)} title="Edit">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </button>
+                    <button className={styles.deleteBtn} onClick={() => handleDelete(item.id)} title="Delete">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))
@@ -339,138 +261,101 @@ export default function AdminItemsPage() {
       </table>
 
       {showEditModal && selectedItem && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "16px",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              padding: "20px",
-              borderRadius: "12px",
-              width: "100%",
-              maxWidth: "520px",
-            }}
-          >
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalBox}>
             <h2>Edit Item</h2>
 
-            <div style={{ display: "grid", gap: "12px" }}>
-              <input
-                type="text"
-                value={selectedItem.title || ""}
-                onChange={(e) =>
-                  setSelectedItem({ ...selectedItem, title: e.target.value })
-                }
-                placeholder="Title"
-              />
+            <div className={styles.modalForm}>
+              <div className={styles.field}>
+                <label className={styles.label}>Title</label>
+                <input
+                  className={styles.input}
+                  value={selectedItem.title || ""}
+                  onChange={(e) => setSelectedItem({ ...selectedItem, title: e.target.value })}
+                />
+              </div>
 
-              <textarea
-                value={selectedItem.description || ""}
-                onChange={(e) =>
-                  setSelectedItem({
-                    ...selectedItem,
-                    description: e.target.value,
-                  })
-                }
-                placeholder="Description"
-                rows={4}
-              />
+              <div className={styles.field}>
+                <label className={styles.label}>Description</label>
+                <textarea
+                  className={styles.input}
+                  value={selectedItem.description || ""}
+                  onChange={(e) => setSelectedItem({ ...selectedItem, description: e.target.value })}
+                  rows={3}
+                  style={{ resize: "vertical", minHeight: 80 }}
+                />
+              </div>
 
-              <select
-                value={selectedItem.location_id || ""}
-                onChange={(e) =>
-                  setSelectedItem({
-                    ...selectedItem,
-                    location_id: e.target.value,
-                  })
-                }
-              >
-                <option value="">Select Location</option>
-                {locations.map((location) => (
-                  <option key={location.id} value={location.id}>
-                    {location.display_name || location.name || `Location ${location.id}`}
-                  </option>
-                ))}
-              </select>
+              <div className={styles.field}>
+                <label className={styles.label}>Category</label>
+                <select
+                  className={styles.input}
+                  value={selectedItem.category_id || ""}
+                  onChange={(e) => setSelectedItem({ ...selectedItem, category_id: e.target.value })}
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
 
-              <input
-                type="text"
-                value={selectedItem.location_details || ""}
-                onChange={(e) =>
-                  setSelectedItem({
-                    ...selectedItem,
-                    location_details: e.target.value,
-                  })
-                }
-                placeholder="Location details"
-              />
+              <div className={styles.field}>
+                <label className={styles.label}>Location</label>
+                <select
+                  className={styles.input}
+                  value={selectedItem.location_id || ""}
+                  onChange={(e) => setSelectedItem({ ...selectedItem, location_id: e.target.value })}
+                >
+                  <option value="">Select Location</option>
+                  {locations.map((l) => (
+                    <option key={l.id} value={l.id}>{l.display_name || l.name || `Location ${l.id}`}</option>
+                  ))}
+                </select>
+              </div>
 
-              <input
-                type="date"
-                value={selectedItem.date ? String(selectedItem.date).slice(0, 10) : ""}
-                onChange={(e) =>
-                  setSelectedItem({ ...selectedItem, date: e.target.value })
-                }
-              />
+              <div className={styles.field}>
+                <label className={styles.label}>Date</label>
+                <input
+                  className={styles.input}
+                  type="date"
+                  value={selectedItem.date ? String(selectedItem.date).slice(0, 10) : ""}
+                  onChange={(e) => setSelectedItem({ ...selectedItem, date: e.target.value })}
+                />
+              </div>
 
-              <select
-                value={selectedItem.category_id || ""}
-                onChange={(e) =>
-                  setSelectedItem({
-                    ...selectedItem,
-                    category_id: e.target.value,
-                  })
-                }
-              >
-                <option value="">Select Category</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+              <div className={styles.field}>
+                <label className={styles.label}>Type</label>
+                <select
+                  className={styles.input}
+                  value={selectedItem.type || "lost"}
+                  onChange={(e) => setSelectedItem({ ...selectedItem, type: e.target.value })}
+                >
+                  <option value="lost">Lost</option>
+                  <option value="found">Found</option>
+                </select>
+              </div>
 
-              <select
-                value={selectedItem.type || "lost"}
-                onChange={(e) =>
-                  setSelectedItem({ ...selectedItem, type: e.target.value })
-                }
-              >
-                <option value="lost">Lost</option>
-                <option value="found">Found</option>
-              </select>
-
-              <select
-                value={selectedItem.status || "active"}
-                onChange={(e) =>
-                  setSelectedItem({ ...selectedItem, status: e.target.value })
-                }
-              >
-                <option value="active">Active</option>
-                <option value="claimed">Claimed</option>
-                <option value="archived">Archived</option>
-              </select>
+              <div className={styles.field}>
+                <label className={styles.label}>Status</label>
+                <select
+                  className={styles.input}
+                  value={selectedItem.status || "active"}
+                  onChange={(e) => setSelectedItem({ ...selectedItem, status: e.target.value })}
+                >
+                  <option value="active">Active</option>
+                  <option value="claimed">Claimed</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "10px",
-                marginTop: "20px",
-              }}
-            >
-              <button onClick={handleCloseEdit}>Cancel</button>
-              <button onClick={handleSaveEdit} disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save"}
+            <div className={styles.modalActions}>
+              <button className={styles.cancelBtn} onClick={() => { setShowEditModal(false); setSelectedItem(null); }}>
+                Cancel
+              </button>
+              <button className={styles.saveBtn} onClick={handleSaveEdit} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>

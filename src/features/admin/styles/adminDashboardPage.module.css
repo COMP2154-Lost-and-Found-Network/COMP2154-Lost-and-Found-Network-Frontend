@@ -9,6 +9,13 @@
   align-items: flex-start;
   gap: 16px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  .headerRow {
+    flex-direction: column;
+  }
 }
 
 .title {
@@ -36,9 +43,21 @@
 
 .metricsGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .metricCard {
@@ -112,4 +131,64 @@
   font-size: 14px;
   color: #6b7280;
   white-space: nowrap;
+}
+
+.alertBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.alertText {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.alertLink {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+  text-decoration: underline;
+}
+
+.sectionLabel {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.accentBlue {
+  border-top: 3px solid #2563eb;
+}
+
+.accentGreen {
+  border-top: 3px solid #16a34a;
+}
+
+.accentAmber {
+  border-top: 3px solid #f59e0b;
+}
+
+.accentRed {
+  border-top: 3px solid #dc2626;
+}
+
+@media (max-width: 480px) {
+  .manageBtn {
+    width: 100%;
+    text-align: center;
+    display: block;
+  }
 }

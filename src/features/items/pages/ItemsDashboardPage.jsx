@@ -1,11 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import PageContainer from "../../../components/ui/PageContainer";
+import { useAuth } from "../../../context/useAuth";
 import useItems from "../hooks/useItems";
 import ItemCard from "../components/ItemCard";
 import { softDeleteItem } from "../api/itemsApi";
 import styles from "../styles/itemsDashboard.module.css";
 
 export default function ItemsDashboardPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+
+  if (isAdmin) return <Navigate to="/admin" replace />;
   const { items, isLoading, error, refresh } = useItems({ mine: true });
 
   async function softDelete(id) {

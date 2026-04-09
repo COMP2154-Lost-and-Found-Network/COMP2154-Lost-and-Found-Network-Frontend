@@ -87,7 +87,7 @@ export default function Navbar() {
   }
 
   function isActivePath(path) {
-    if (path === "/items") return location.pathname === "/items";
+    if (path === "/items" || path === "/admin") return location.pathname === path;
     return location.pathname === path || location.pathname.startsWith(path + "/");
   }
 
@@ -139,7 +139,7 @@ export default function Navbar() {
         <div className={`${styles.links} ${menuOpen ? styles.linksOpen : ""}`}>
           {isAuthed && (
             <>
-              {navLink("/items", "Dashboard")}
+              {navLink(isAdmin ? "/admin" : "/items", isAdmin ? "Admin Dashboard" : "Dashboard")}
               {navLink("/browse", "Browse")}
 
               <Dropdown

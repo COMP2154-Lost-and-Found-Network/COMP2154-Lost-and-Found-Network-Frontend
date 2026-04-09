@@ -38,6 +38,12 @@
   margin-top: 16px;
 }
 
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .card {
   background: white;
   border: 1px solid #e5e7eb;
@@ -184,4 +190,18 @@
   margin: 0;
   font-size: 14px;
   color: #6b7280;
+}
+
+@media (max-width: 480px) {
+  .listItem {
+    flex-direction: column;
+  }
+
+  .itemActions {
+    width: 100%;
+  }
+
+  .itemActions button {
+    flex: 1;
+  }
 }

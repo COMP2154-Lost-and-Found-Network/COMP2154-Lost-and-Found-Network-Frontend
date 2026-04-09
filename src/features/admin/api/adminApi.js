@@ -338,7 +338,8 @@ async function realGetDashboardMetrics() {
 }
 
 async function realGetRecentActivity() {
-  return await http.get("/admin/activity");
+  const res = await http.get("/admin/items?limit=5", { token: getToken() });
+  return Array.isArray(res) ? res : res?.data ?? [];
 }
 
 async function realListCategories() {
