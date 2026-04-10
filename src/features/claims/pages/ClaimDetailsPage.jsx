@@ -35,6 +35,8 @@ export default function ClaimDetailsPage() {
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeSubmitted, setDisputeSubmitted] = useState(false);
+  const [disputeError, setDisputeError] = useState("");
+  const [rejectError, setRejectError] = useState("");
 
   async function loadClaim() {
     try {
@@ -93,12 +95,13 @@ export default function ClaimDetailsPage() {
     if (!disputeReason.trim()) return;
     try {
       setActionInProgress(true);
+      setDisputeError("");
       await claimsApi.escalateDispute(claimId, disputeReason.trim());
       setShowDisputeModal(false);
       setDisputeReason("");
       setDisputeSubmitted(true);
     } catch (e) {
-      alert(e.message || "Failed to escalate dispute");
+      setDisputeError(e.message || "Failed to escalate dispute");
     } finally {
       setActionInProgress(false);
     }
@@ -106,15 +109,15 @@ export default function ClaimDetailsPage() {
 
   async function handleSubmitRejection() {
     if (!rejectFeedback.trim()) return;
-    if (!window.confirm("Reject this claim and send this feedback to the claimant?")) return;
     try {
       setActionInProgress(true);
+      setRejectError("");
       await claimsApi.rejectClaim(claimId, rejectFeedback.trim());
       setShowRejectModal(false);
       setRejectFeedback("");
       await loadClaim();
     } catch (e) {
-      alert(e.message || "Failed to reject claim");
+      setRejectError(e.message || "Failed to reject claim");
     } finally {
       setActionInProgress(false);
     }
@@ -225,10 +228,29 @@ export default function ClaimDetailsPage() {
             </div>
           </div>
 
-          {claim.status === "rejected" && claim.reporter_feedback && (
+          {(claim.status === "rejected" || claim.status === "escalated") && claim.reporter_feedback && (
             <div className={styles.feedbackBox}>
-              <h2 className={styles.sectionTitle}>Feedback</h2>
+              <h2 className={styles.sectionTitle}>Rejection Reason</h2>
               <p className={styles.feedbackText}>{claim.reporter_feedback}</p>
+            </div>
+          )}
+
+          {claim.status === "escalated" && (
+            <div style={{
+              padding: "14px 16px",
+              borderRadius: 10,
+              background: "#fef3c7",
+              border: "1px solid #fcd34d",
+              marginBottom: 20,
+            }}>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: "#92400e" }}>
+                This claim has been escalated for admin review.
+              </p>
+              {claim.escalation_reason && (
+                <p style={{ margin: "8px 0 0", fontSize: 14, color: "#92400e" }}>
+                  Reason: {claim.escalation_reason}
+                </p>
+              )}
             </div>
           )}
 
@@ -329,6 +351,12 @@ export default function ClaimDetailsPage() {
               </button>
             )}
 
+            {claim.status === "escalated" && (
+              <p style={{ color: "#92400e", fontWeight: 600, fontSize: 14, margin: 0 }}>
+                Escalated — awaiting admin review.
+              </p>
+            )}
+
             {disputeSubmitted && (
               <p style={{ color: "#16a34a", fontWeight: 600, fontSize: 14, margin: 0 }}>
                 Dispute submitted — an admin will review this claim.
@@ -350,6 +378,11 @@ export default function ClaimDetailsPage() {
                   rows={5}
                   className={styles.textarea}
                 />
+                {rejectError && (
+                  <p style={{ color: "#991b1b", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "10px 14px", fontSize: 14, margin: "0 0 12px" }}>
+                    {rejectError}
+                  </p>
+                )}
                 <div className={styles.modalActions}>
                   <button
                     type="button"
@@ -357,6 +390,7 @@ export default function ClaimDetailsPage() {
                     onClick={() => {
                       setShowRejectModal(false);
                       setRejectFeedback("");
+                      setRejectError("");
                     }}
                   >
                     Cancel
@@ -421,6 +455,11 @@ export default function ClaimDetailsPage() {
                   rows={5}
                   className={styles.textarea}
                 />
+                {disputeError && (
+                  <p style={{ color: "#991b1b", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "10px 14px", fontSize: 14, margin: "0 0 12px" }}>
+                    {disputeError}
+                  </p>
+                )}
                 <div className={styles.modalActions}>
                   <button
                     type="button"
@@ -428,6 +467,7 @@ export default function ClaimDetailsPage() {
                     onClick={() => {
                       setShowDisputeModal(false);
                       setDisputeReason("");
+                      setDisputeError("");
                     }}
                   >
                     Cancel

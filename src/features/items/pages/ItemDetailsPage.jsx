@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import PageContainer from "../../../components/ui/PageContainer";
 import { useAuth } from "../../../context/useAuth";
 import * as itemsApi from "../api/itemsApi";
+import * as claimsApi from "../../claims/api/claimsApi";
 import StatusPill from "../components/StatusPill";
 import styles from "../styles/itemDetails.module.css";
 
@@ -20,6 +21,7 @@ export default function ItemDetailsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [item, setItem] = useState(null);
+  const [myClaim, setMyClaim] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -28,12 +30,25 @@ export default function ItemDetailsPage() {
         setError("");
         const data = await itemsApi.getItemById(itemId);
         setItem(data);
+
+        // Check if the logged-in user has a claim on this item
+        if (user?.id) {
+          try {
+            const claims = await claimsApi.listMyClaims(user.id);
+            const match = (Array.isArray(claims) ? claims : []).find(
+              (c) => String(c.item_id) === String(itemId)
+            );
+            if (match) setMyClaim(match);
+          } catch {
+            // silently fail — claim check is supplementary
+          }
+        }
       } catch (e) {
         setError(e.message || "Failed to load item");
       }
     }
     loadItem();
-  }, [itemId]);
+  }, [itemId, user?.id]);
 
   if (error) {
     return (
@@ -124,14 +139,53 @@ export default function ItemDetailsPage() {
                 </div>
               </div>
 
+              {/* User's claim status on this item */}
+              {myClaim && (
+                <div style={{
+                  padding: "14px 16px",
+                  borderRadius: 10,
+                  background: myClaim.status === "approved" ? "#f0fdf4"
+                    : myClaim.status === "rejected" ? "#fef2f2"
+                      : "#eff6ff",
+                  border: `1px solid ${myClaim.status === "approved" ? "#86efac"
+                    : myClaim.status === "rejected" ? "#fecaca"
+                      : "#bfdbfe"}`,
+                }}>
+                  <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 14, color: "#111827" }}>
+                    Your claim: {myClaim.status.charAt(0).toUpperCase() + myClaim.status.slice(1)}
+                  </p>
+                  {myClaim.status === "rejected" && myClaim.reporter_feedback && (
+                    <p style={{ margin: 0, fontSize: 14, color: "#374151" }}>
+                      Feedback: {myClaim.reporter_feedback}
+                    </p>
+                  )}
+                  <Link
+                    to={`/claims/${myClaim.id}`}
+                    style={{ fontSize: 13, fontWeight: 600, color: "#2563eb", textDecoration: "none", marginTop: 8, display: "inline-block" }}
+                  >
+                    View Claim Details
+                  </Link>
+                </div>
+              )}
+
               {/* Actions */}
               <div className={styles.actions}>
-                {item.type?.toLowerCase() === "found" && !isOwner && (
+                {item.type?.toLowerCase() === "found" && !isOwner && item.status?.toLowerCase() === "active" && !myClaim && (
                   <button
                     className={styles.claimBtn}
                     onClick={() => navigate(`/items/${itemId}/claim`)}
                   >
                     Claim This Item
+                  </button>
+                )}
+
+                {item.type?.toLowerCase() === "found" && !isOwner && item.status?.toLowerCase() === "active" && myClaim && (
+                  <button
+                    className={styles.editBtn}
+                    disabled
+                    style={{ opacity: 0.7, cursor: "not-allowed" }}
+                  >
+                    You submitted a claim
                   </button>
                 )}
 

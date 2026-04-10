@@ -59,9 +59,12 @@ export default function AdminDisputesPage() {
     }
   }
 
-  const filtered = disputes.filter((d) =>
-    filter === "all" ? true : d.status === filter
-  );
+  const filtered = disputes.filter((d) => {
+    if (filter === "all") return true;
+    if (filter === "open") return d.status === "open" || d.status === "escalated" || d.status === "pending";
+    if (filter === "resolved") return d.status === "resolved" || d.status === "approved" || d.status === "rejected";
+    return d.status === filter;
+  });
 
   return (
     <PageContainer>
@@ -116,12 +119,17 @@ export default function AdminDisputesPage() {
                 <div>
                   <h2 className={styles.itemTitle}>{dispute.item_title}</h2>
                   <p className={styles.parties}>
-                    Reporter: {dispute.reporter_name} &middot; Claimant: {dispute.claimant_name}
+                    Claimant: {dispute.claimant_first_name
+                      ? `${dispute.claimant_first_name} ${dispute.claimant_last_name || ""}`.trim()
+                      : dispute.claimant_name || `Claimant #${dispute.claimant_id}`}
+                    {dispute.reporter_first_name && (
+                      <> &middot; Reporter: {`${dispute.reporter_first_name} ${dispute.reporter_last_name || ""}`.trim()}</>
+                    )}
                   </p>
                 </div>
                 <span
                   className={
-                    dispute.status === "open"
+                    ["open", "escalated", "pending"].includes(dispute.status)
                       ? styles.statusOpen
                       : styles.statusResolved
                   }
@@ -136,7 +144,7 @@ export default function AdminDisputesPage() {
               </p>
 
               <div className={styles.reason}>
-                <strong>Reason:</strong> {dispute.reason}
+                <strong>Verification Details:</strong> {dispute.verification_details || dispute.reason || "No details provided"}
               </div>
 
               {dispute.status === "resolved" && dispute.resolution_notes && (
@@ -146,16 +154,10 @@ export default function AdminDisputesPage() {
               )}
 
               <div className={styles.actions}>
-                <Link to={`/admin/disputes/${dispute.id}`} className={styles.viewBtn}>
-                  View Details
-                </Link>
-                {dispute.status === "open" && (
-                  <button
-                    className={styles.resolveBtn}
-                    onClick={() => openResolveModal(dispute.id)}
-                  >
+                {["open", "escalated", "pending"].includes(dispute.status) && (
+                  <Link to={`/admin/disputes/${dispute.id}`} className={styles.resolveBtn} style={{ textDecoration: "none" }}>
                     Resolve Dispute
-                  </button>
+                  </Link>
                 )}
                 <Link to={`/items/${dispute.item_id}`} className={styles.viewBtn}>
                   View Item

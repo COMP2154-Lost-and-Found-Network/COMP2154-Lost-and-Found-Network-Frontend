@@ -3,9 +3,12 @@ import { useAuth } from "../../context/useAuth";
 import styles from "./LandingPage.module.css";
 
 export default function LandingPage() {
-  const { isAuthed } = useAuth();
+  const { isAuthed, user } = useAuth();
 
-  if (isAuthed) return <Navigate to="/browse" replace />;
+  if (isAuthed) {
+    const isAdmin = user?.role?.toLowerCase() === "admin";
+    return <Navigate to={isAdmin ? "/admin" : "/browse"} replace />;
+  }
 
   return (
     <div className={styles.page}>
